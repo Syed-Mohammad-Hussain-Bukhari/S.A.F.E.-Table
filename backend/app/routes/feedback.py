@@ -13,7 +13,7 @@ async def submit_feedback(feedback: FeedbackCreate):
     """Submit customer feedback with AI sentiment analysis."""
     db = get_database()
 
-    # Analyze sentiment using Grok AI
+    # Analyze sentiment using Groq AI
     sentiment = await analyze_sentiment(feedback.text)
 
     feedback_dict = {

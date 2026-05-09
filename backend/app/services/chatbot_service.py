@@ -1,6 +1,6 @@
 """
 Chatbot Service — AI Personalization
-Wraps Grok AI for multi-turn, context-aware restaurant conversations.
+Wraps Groq AI for multi-turn, context-aware restaurant conversations.
 Persists chat history in MongoDB (collection: chat_sessions).
 """
 import httpx
@@ -10,22 +10,22 @@ from app.config import settings
 from app.database import get_database
 
 
-# ─── Grok AI Helper ───────────────────────────────────────────────────────
+# ─── Groq AI Helper ───────────────────────────────────────────────────────
 
-async def _call_grok(messages: list) -> str:
-    """Call Grok AI with a messages array (multi-turn)."""
-    if not settings.GROK_API_KEY:
+async def _call_groq(messages: list) -> str:
+    """Call Groq AI with a messages array (multi-turn)."""
+    if not settings.GROQ_API_KEY:
         return ""
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                settings.GROK_API_URL,
+                settings.GROQ_API_URL,
                 headers={
-                    "Authorization": f"Bearer {settings.GROK_API_KEY}",
+                    "Authorization": f"Bearer {settings.GROQ_API_KEY}",
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "grok-3",
+                    "model": settings.GROQ_MODEL,
                     "messages": messages,
                     "temperature": 0.6,
                     "max_tokens": 600,
@@ -34,7 +34,7 @@ async def _call_grok(messages: list) -> str:
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        print(f"⚠️ Grok API error (chatbot): {e}")
+        print(f"⚠️ Groq API error (chatbot): {e}")
         return ""
 
 
@@ -81,12 +81,12 @@ async def process_chat_message(
     context: str = None,
 ) -> dict:
     """
-    Process a chat message through Grok AI with full conversation context.
+    Process a chat message through Groq AI with full conversation context.
 
     Steps:
     1. Load last 10 messages from MongoDB (for multi-turn memory)
-    2. Build Grok messages array with system prompt + history + new message
-    3. Call Grok AI
+    2. Build Groq messages array with system prompt + history + new message
+    3. Call Groq AI
     4. Persist user + assistant messages to MongoDB
     5. Return structured response
 
@@ -162,8 +162,8 @@ Respond in JSON:
         messages.append({"role": msg["role"], "content": msg["content"]})
     messages.append({"role": "user", "content": user_message})
 
-    # Call Grok
-    ai_response = await _call_grok(messages)
+    # Call Groq
+    ai_response = await _call_groq(messages)
 
     # Parse response
     parsed = None
@@ -177,7 +177,7 @@ Respond in JSON:
             parsed = None
 
     if not parsed:
-        # Fallback for when Grok is unavailable
+        # Fallback for when Groq is unavailable
         parsed = _fallback_response(user_message, language)
 
     # Persist messages
@@ -195,7 +195,7 @@ Respond in JSON:
 
 
 def _fallback_response(message: str, language: str) -> dict:
-    """Simple rule-based fallback when Grok is unavailable."""
+    """Simple rule-based fallback when Groq is unavailable."""
     lower = message.lower()
 
     if any(w in lower for w in ["hello", "hi", "hey", "salam", "hallo", "namaste"]):

@@ -43,7 +43,7 @@ app = FastAPI(
         "Smart AI Fusion Experience Dining Table — Backend API\n\n"
         "## Features\n"
         "- 🍽️ Menu & Orders management\n"
-        "- 🎤 Voice ordering (Whisper → Grok → HeyGen)\n"
+        "- 🎤 Voice ordering (Whisper → Groq → HeyGen)\n"
         "- 🤖 AI Chatbot & Personalization (SAGE)\n"
         "- 💳 QR Payments (Stripe)\n"
         "- 🌍 Multilingual support (EN, UR, DE)\n"
@@ -145,7 +145,7 @@ async def health_check():
     return {
         "status": "healthy",
         "database": db_status,
-        "grok_api": "configured" if settings.GROK_API_KEY else "not configured (using fallback)",
+        "groq_api": "configured" if settings.GROQ_API_KEY else "not configured (using fallback)",
         "stripe": "configured" if not settings.STRIPE_SECRET_KEY.startswith("sk_test_placeholder") else "using simulated mode",
         "heygen": "configured" if settings.HEYGEN_API_KEY else "not configured",
     }

@@ -65,7 +65,7 @@ async def detect(request: LanguageDetectRequest):
 @router.post("/translate")
 async def translate(request: TranslationRequest):
     """
-    Translate text from one language to another using Grok AI.
+    Translate text from one language to another using Groq AI.
 
     Example:
         POST /api/languages/translate
@@ -82,9 +82,5 @@ async def translate(request: TranslationRequest):
     )
 
     if not result["success"]:
-        raise HTTPException(
-            status_code=503,
-            detail="Translation service unavailable. Please try again later."
-        )
-
+        result["message"] = "Translation service unavailable. Returned original text."
     return result

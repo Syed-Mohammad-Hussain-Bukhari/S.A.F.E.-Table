@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
@@ -19,6 +19,8 @@ class PyObjectId(str):
 
 
 class MenuItemBase(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     name: str = Field(..., min_length=1, max_length=200)
     description: str = Field("", max_length=1000)
     price: float = Field(..., gt=0)
@@ -39,6 +41,8 @@ class MenuItemCreate(MenuItemBase):
 
 
 class MenuItemUpdate(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     price: Optional[float] = Field(None, gt=0)
@@ -58,7 +62,8 @@ class MenuItemResponse(MenuItemBase):
     id: str = Field(..., alias="_id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_encoders={ObjectId: str},
+        protected_namespaces=(),
+    )

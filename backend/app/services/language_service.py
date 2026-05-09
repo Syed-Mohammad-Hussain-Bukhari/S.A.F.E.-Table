@@ -3,7 +3,7 @@ Language Service — Multilingual Support
 Supports: English (en), Urdu (ur), German (de)
 Extendable to: French (fr), Spanish (es), Italian (it),
                Japanese (ja), Arabic (ar), Korean (ko), Russian (ru)
-Uses Grok AI for translation/detection with rule-based fallback.
+Uses Groq AI for translation/detection with rule-based fallback.
 """
 from app.config import settings
 import httpx
@@ -27,22 +27,22 @@ SUPPORTED_LANGUAGES = [
 LANGUAGE_NAMES = {lang["code"]: lang["name"] for lang in SUPPORTED_LANGUAGES}
 
 
-# ─── Grok Helper ──────────────────────────────────────────────────────────
+# ─── Groq Helper ──────────────────────────────────────────────────────────
 
-async def _call_grok_raw(system_prompt: str, user_message: str) -> str:
-    """Call Grok AI API. Returns empty string on failure."""
-    if not settings.GROK_API_KEY:
+async def _call_groq_raw(system_prompt: str, user_message: str) -> str:
+    """Call Groq AI API. Returns empty string on failure."""
+    if not settings.GROQ_API_KEY:
         return ""
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                settings.GROK_API_URL,
+                settings.GROQ_API_URL,
                 headers={
-                    "Authorization": f"Bearer {settings.GROK_API_KEY}",
+                    "Authorization": f"Bearer {settings.GROQ_API_KEY}",
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "grok-3",
+                    "model": settings.GROQ_MODEL,
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user",   "content": user_message},
@@ -54,7 +54,7 @@ async def _call_grok_raw(system_prompt: str, user_message: str) -> str:
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
-        print(f"⚠️ Grok API error (language service): {e}")
+        print(f"⚠️ Groq API error (language service): {e}")
         return ""
 
 
@@ -89,14 +89,14 @@ async def detect_language(text: str) -> dict:
     if confidence >= 0.9:
         return {"detected_language": code, "confidence": confidence}
 
-    # Use Grok AI for better accuracy
+    # Use Groq AI for better accuracy
     system_prompt = (
         "You are a language detection expert. "
         "Identify the language of the input text. "
         "Respond with ONLY the ISO 639-1 two-letter language code (e.g. en, ur, de, fr, es, it, ja, ar, ko, ru). "
         "No explanation, just the code."
     )
-    result = await _call_grok_raw(system_prompt, text)
+    result = await _call_groq_raw(system_prompt, text)
     if result:
         detected = result.strip().lower()[:2]
         if len(detected) == 2 and detected.isalpha():
@@ -109,7 +109,7 @@ async def detect_language(text: str) -> dict:
 
 async def translate_text(text: str, target_language: str, source_language: str = "auto") -> dict:
     """
-    Translate text to the target language using Grok AI.
+    Translate text to the target language using Groq AI.
     Falls back to returning original text if translation fails.
 
     Returns:
@@ -145,7 +145,7 @@ async def translate_text(text: str, target_language: str, source_language: str =
         f"Return ONLY the translated text with no explanation, quotes, or extra formatting."
     )
 
-    translated = await _call_grok_raw(system_prompt, text)
+    translated = await _call_groq_raw(system_prompt, text)
 
     if translated:
         return {

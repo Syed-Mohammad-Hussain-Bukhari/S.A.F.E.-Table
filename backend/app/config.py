@@ -1,15 +1,20 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field, AliasChoices
 from typing import List
 
 
 class Settings(BaseSettings):
     # MongoDB
-    MONGODB_URL: str = "mongodb://localhost:27017"
+    MONGODB_URL: str = Field(
+        "mongodb://localhost:27017",
+        validation_alias=AliasChoices("MONGODB_URL", "DATABASE_URL"),
+    )
     DATABASE_NAME: str = "safetable"
 
-    # Grok AI
-    GROK_API_KEY: str = ""
-    GROK_API_URL: str = "https://api.x.ai/v1/chat/completions"
+    # Groq AI
+    GROQ_API_KEY: str = ""
+    GROQ_API_URL: str = "https://api.groq.com/openai/v1/chat/completions"
+    GROQ_MODEL: str = "llama-3.1-70b-versatile"
 
     # OpenAI (Whisper STT)
     OPENAI_API_KEY: str = ""
@@ -29,7 +34,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
     # CORS
-    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://localhost:8080"
 
     # Server
     HOST: str = "0.0.0.0"

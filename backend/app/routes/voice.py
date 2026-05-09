@@ -31,7 +31,7 @@ async def voice_order(
         raise HTTPException(status_code=400, detail="No audio transcribed successfully.")
 
     # AI & Order Intent
-    grok_result = await process_voice_order(
+    groq_result = await process_voice_order(
         transcript=final_transcript,
         language=language,
         table_number=table_number,
@@ -39,20 +39,20 @@ async def voice_order(
 
     # TTS Output
     try:
-        tts_result = await text_to_speech(grok_result["response_text"])
+        tts_result = await text_to_speech(groq_result["response_text"])
     except Exception:
         tts_result = {"audio_base64": None, "use_browser_tts": True}
 
     # Broadcast
-    if grok_result.get("order_placed") and grok_result.get("order_data"):
-        await manager.broadcast_new_order(grok_result["order_data"])
+    if groq_result.get("order_placed") and groq_result.get("order_data"):
+        await manager.broadcast_new_order(groq_result["order_data"])
 
     return {
         "success": True,
         "transcript": final_transcript,
-        "response_text": grok_result["response_text"],
-        "order_placed": grok_result.get("order_placed", False),
-        "order_id": grok_result.get("order_id"),
+        "response_text": groq_result["response_text"],
+        "order_placed": groq_result.get("order_placed", False),
+        "order_id": groq_result.get("order_id"),
         "audio_base64": tts_result.get("audio_base64"),
         "audio_content_type": tts_result.get("content_type", "audio/mpeg"),
         "use_browser_tts": tts_result.get("use_browser_tts", True),
