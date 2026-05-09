@@ -5,12 +5,17 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, ChefHat, ConciergeBell, Sparkles, Activity, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
+<<<<<<< HEAD
 import { useEffect, useState, useMemo } from "react";
+=======
+import { useEffect, useMemo, useState } from "react";
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
 import { useAuth } from "@/hooks/useAuth";
 import { useService } from "@/hooks/useService";
 
 const ManagerDashboard = () => {
+<<<<<<< HEAD
   const { getAllOrders } = useOrders();
   const { approvedUsers } = useAuth();
   const { requests } = useService();
@@ -42,6 +47,38 @@ const ManagerDashboard = () => {
 
     // Cleaner stats
     const cleaningPending = requests.filter((r) => r.type === 'clean' && r.status === 'pending').length;
+=======
+  const { orders, refreshKitchen } = useOrders();
+  const { approvedUsers, refreshStaff } = useAuth();
+  const { requests, refresh: refreshService } = useService();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    refreshKitchen();
+    refreshStaff().catch(() => {});
+    refreshService({ status_filter: "pending" }).catch(() => {});
+    const t = setInterval(() => {
+      refreshKitchen();
+      setNow(new Date());
+    }, 5000);
+    return () => clearInterval(t);
+  }, [refreshKitchen, refreshStaff, refreshService]);
+
+  // Calculate stats from backend orders
+  const portalStats = useMemo(() => {
+    const activeOrders = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled");
+
+    const kitchenPending = orders.filter((o) => o.status === "pending" || o.status === "confirmed").length;
+    const kitchenPreparing = orders.filter((o) => o.status === "preparing").length;
+    const kitchenReady = orders.filter((o) => o.status === "ready").length;
+
+    // Server stats — orders ready to serve are the "in transit" pool.
+    const serverDeliveries = orders.filter((o) => o.status === "ready").length;
+    const serverReady = orders.filter((o) => o.status === "ready").length;
+
+    // Cleaner stats
+    const cleaningPending = requests.filter((r) => r.type === "clean" && r.status === "pending").length;
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
     // Alert detection
     const delayedOrders = activeOrders.filter((o) => {
@@ -60,12 +97,18 @@ const ManagerDashboard = () => {
     };
   }, [orders, requests, now]);
 
+<<<<<<< HEAD
   // Calculate average times
   const metrics = useMemo(() => {
     const activeStaff = approvedUsers.filter((u) => u.status !== 'suspended').length;
     return {
       staffOnDuty: activeStaff
     };
+=======
+  const metrics = useMemo(() => {
+    const activeStaff = (approvedUsers || []).filter((u) => u.is_active !== false).length;
+    return { staffOnDuty: activeStaff };
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   }, [approvedUsers]);
 
   const overviewCards = [
@@ -112,15 +155,22 @@ const ManagerDashboard = () => {
 
 
 
+<<<<<<< HEAD
   // Alert feed
   const alerts = useMemo(() => {
     const items = [];
 
     const activeOrders = orders.filter((o) => o.status !== 'completed' && o.status !== 'delivered');
+=======
+  const alerts = useMemo(() => {
+    const items = [];
+    const activeOrders = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled");
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     activeOrders.forEach((o) => {
       const elapsed = (now.getTime() - new Date(o.createdAt).getTime()) / 60000;
       if (elapsed > 20) {
         items.push({
+<<<<<<< HEAD
           type: 'warning',
           message: `Table ${o.tableNumber} - Order #${o.orderId.slice(-4)} delayed (${Math.floor(elapsed)}m)`,
           time: new Date(o.createdAt).toLocaleTimeString()
@@ -129,6 +179,15 @@ const ManagerDashboard = () => {
     });
 
     return items.slice(0, 5); // Latest 5 alerts
+=======
+          type: "warning",
+          message: `Table ${o.tableNumber} - Order #${(o.orderId || "").slice(-4)} delayed (${Math.floor(elapsed)}m)`,
+          time: new Date(o.createdAt).toLocaleTimeString(),
+        });
+      }
+    });
+    return items.slice(0, 5);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   }, [orders, now]);
 
   return (

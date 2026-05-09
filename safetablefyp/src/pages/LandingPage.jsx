@@ -4,11 +4,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
+<<<<<<< HEAD
 import { useOrders } from "@/hooks/useOrders";
 
 const LandingPage = () => {
   const { getActiveOrders, tableNumber } = useOrders();
   const activeOrders = getActiveOrders();
+=======
+import { useEffect } from "react";
+import { useOrders } from "@/hooks/useOrders";
+import { useCustomerSession } from "@/hooks/useCustomerSession";
+
+const LandingPage = () => {
+  const { tableNumber } = useCustomerSession();
+  const { orders, refreshForTable } = useOrders();
+  const activeOrders = orders.filter(
+    (o) => o.tableNumber === tableNumber && o.status !== "completed" && o.status !== "cancelled",
+  );
+
+  useEffect(() => {
+    if (tableNumber) refreshForTable(tableNumber);
+  }, [tableNumber, refreshForTable]);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -53,8 +70,13 @@ const LandingPage = () => {
           </Button>
         </Link>
         <div className="bg-background/80 backdrop-blur-md border border-primary/20 px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+<<<<<<< HEAD
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-sm font-medium">Table #{tableNumber}</span>
+=======
+          <span className={`w-2 h-2 rounded-full ${tableNumber ? "bg-green-500 animate-pulse" : "bg-muted-foreground"}`} />
+          <span className="text-sm font-medium">{tableNumber ? `Table #${tableNumber}` : "No table"}</span>
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
         </div>
       </div>
 

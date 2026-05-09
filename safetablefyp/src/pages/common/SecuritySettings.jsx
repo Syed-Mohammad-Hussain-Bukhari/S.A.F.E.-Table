@@ -66,22 +66,35 @@ const SecuritySettings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+<<<<<<< HEAD
     if (user?.role === 'admin') {
       toast.error("Admin password cannot be changed in Demo mode.");
       return;
     }
 
+=======
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     if (formData.newCredential !== formData.confirmCredential) {
       toast.error(`${credentialLabel}s do not match`);
       return;
     }
+<<<<<<< HEAD
 
     if (isStaff && formData.newCredential.length < 6) {
       toast.error("Access Code must be 6 characters");
+=======
+    if (formData.newCredential.length < 6) {
+      toast.error(`${credentialLabel} must be at least 6 characters`);
+      return;
+    }
+    if (!formData.currentCredential) {
+      toast.error(`Enter your current ${credentialLabel.toLowerCase()}`);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
       return;
     }
 
     setIsLoading(true);
+<<<<<<< HEAD
 
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -90,14 +103,25 @@ const SecuritySettings = () => {
       // In a real app, we would verify currentCredential here
       // distinct from the update. For this mock, we just update.
       const result = updateCredentials(user.id, formData.newCredential);
+=======
+    try {
+      // updateCredentials now hits the real /api/auth/change-password route.
+      const result = await updateCredentials(formData.currentCredential, formData.newCredential);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
       if (result.success) {
         toast.success(`${credentialLabel} updated successfully`);
         setFormData({ currentCredential: "", newCredential: "", confirmCredential: "" });
       } else {
         toast.error(result.message || `Failed to update ${credentialLabel.toLowerCase()}`);
       }
+<<<<<<< HEAD
     }
     setIsLoading(false);
+=======
+    } finally {
+      setIsLoading(false);
+    }
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   };
 
   return (

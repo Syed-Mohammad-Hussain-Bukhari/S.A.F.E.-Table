@@ -21,6 +21,10 @@ const SignupPage = () => {
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
+<<<<<<< HEAD
+=======
+  const [submitting, setSubmitting] = useState(false);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   const handleNext = () => {
     if (!name || !phone) {
@@ -34,19 +38,34 @@ const SignupPage = () => {
     setStep(1);
   };
 
+<<<<<<< HEAD
   const handleSignup = (e) => {
     e.preventDefault();
 
+=======
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    if (!name || !username) {
+      toast.error("Name and username are required");
+      return;
+    }
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     if (pin !== confirmPin) {
       toast.error("Access Codes do not match");
       return;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     if (pin.length !== 6) {
       toast.error("Access Code must be 6 digits");
       return;
     }
 
+<<<<<<< HEAD
     const result = signup(name, email, username, phone, pin, role);
 
     if (result.success) {
@@ -54,6 +73,19 @@ const SignupPage = () => {
       navigate('/login');
     } else {
       toast.error(result.message || "Signup failed");
+=======
+    setSubmitting(true);
+    try {
+      const result = await signup(name, email, username, phone, pin, role);
+      if (result.success) {
+        toast.success(result.message || "Signup request sent! Please wait for admin approval.");
+        navigate("/login");
+      } else {
+        toast.error(result.message || "Signup failed");
+      }
+    } finally {
+      setSubmitting(false);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     }
   };
 
@@ -458,11 +490,20 @@ const SignupPage = () => {
                                                     </Button>
                                                     <Button
                                                         onClick={handleSignup}
+<<<<<<< HEAD
                                                         className={`flex-[2] h-14 text-white text-lg font-bold shadow-lg 
                                                             ${theme === 'orange' ? 'bg-orange-500 shadow-orange-500/20 hover:shadow-orange-500/40 hover:bg-orange-600' :
                                                             theme === 'purple' ? 'bg-purple-600 shadow-purple-500/20 hover:shadow-purple-500/40 hover:bg-purple-700' :
                                                             'bg-teal-600 shadow-teal-500/20 hover:shadow-teal-500/40 hover:bg-teal-700'}`}>
                                                         Submit Request
+=======
+                                                        disabled={submitting}
+                                                        className={`flex-[2] h-14 text-white text-lg font-bold shadow-lg disabled:opacity-60 disabled:cursor-not-allowed
+                                                            ${theme === 'orange' ? 'bg-orange-500 shadow-orange-500/20 hover:shadow-orange-500/40 hover:bg-orange-600' :
+                                                            theme === 'purple' ? 'bg-purple-600 shadow-purple-500/20 hover:shadow-purple-500/40 hover:bg-purple-700' :
+                                                            'bg-teal-600 shadow-teal-500/20 hover:shadow-teal-500/40 hover:bg-teal-700'}`}>
+                                                        {submitting ? "Submitting…" : "Submit Request"}
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                                                     </Button>
                                                 </div>
                                             </motion.div>

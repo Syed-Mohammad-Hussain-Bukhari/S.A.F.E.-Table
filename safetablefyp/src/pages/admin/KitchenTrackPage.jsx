@@ -62,16 +62,34 @@ const statusConfig = {
 
 const KitchenTrackPage = () => {
   const { user } = useAuth();
+<<<<<<< HEAD
   const isAdmin = user?.role === 'admin';
   const { getAllOrders, getActiveOrders, tableNumber } = useOrders();
+=======
+  const isAdmin = user?.role === "admin" || user?.role === "manager";
+  const { orders: storeOrders, refreshKitchen, getAllOrders, getActiveOrders } = useOrders();
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   const [orders, setOrders] = useState([]);
   const [now, setNow] = useState(new Date());
 
+<<<<<<< HEAD
   // Real-time update loop
   useEffect(() => {
     const updateOrders = () => {
       // If admin, get ALL orders. If customer, get only their table's active orders
+=======
+  // Initial fetch + 5s polling.
+  useEffect(() => {
+    refreshKitchen();
+    const t = setInterval(() => refreshKitchen(), 5000);
+    return () => clearInterval(t);
+  }, [refreshKitchen]);
+
+  // Real-time update loop
+  useEffect(() => {
+    const updateOrders = () => {
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
       const sourceOrders = isAdmin ? getAllOrders() : getActiveOrders();
       const currentNow = new Date();
       setNow(currentNow);
@@ -119,11 +137,18 @@ const KitchenTrackPage = () => {
       setOrders(activeOrders);
     };
 
+<<<<<<< HEAD
     updateOrders(); // Initial call
     const interval = setInterval(updateOrders, 1000); // Update every second
 
     return () => clearInterval(interval);
   }, [getAllOrders, getActiveOrders, isAdmin]);
+=======
+    updateOrders();
+    const interval = setInterval(updateOrders, 1000);
+    return () => clearInterval(interval);
+  }, [getAllOrders, getActiveOrders, isAdmin, storeOrders]);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   return (
     <div className="min-h-screen bg-background">

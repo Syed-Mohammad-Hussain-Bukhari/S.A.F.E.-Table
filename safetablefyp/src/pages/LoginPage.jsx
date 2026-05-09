@@ -15,6 +15,10 @@ const LoginPage = () => {
   const { login } = useAuth();
   const [selectedRole, setSelectedRole] = useState(null);
   const [password, setPassword] = useState("");
+<<<<<<< HEAD
+=======
+  const [submitting, setSubmitting] = useState(false);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   const [identifier, setIdentifier] = useState(""); // Email or Username
 
@@ -55,6 +59,7 @@ const LoginPage = () => {
     return { className: `${baseClass} ${borderColors}`, activeClassName: activeClass, hasValueClassName: hasValueClass };
   };
 
+<<<<<<< HEAD
   const handleLogin = (e) => {
     e.preventDefault();
 
@@ -118,6 +123,44 @@ const LoginPage = () => {
       } else {
         toast.error(result.message || "Login failed");
       }
+=======
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    if (!selectedRole) return;
+    if (!identifier.trim()) {
+      toast.error("Please enter your Username or Email");
+      return;
+    }
+    if (!password.trim()) {
+      toast.error(selectedRole === "admin" ? "Please enter your password" : "Please enter your access code");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await login(selectedRole, password, identifier);
+      if (!result.success) {
+        toast.error(result.message || "Login failed");
+        return;
+      }
+
+      // Redirect based on the user's actual role from the backend.
+      const me = result.user;
+      const greetings = {
+        admin: "Welcome, Admin!",
+        manager: "Welcome, Manager!",
+        kitchen: "Welcome, Chef!",
+        server: "Welcome, Server!",
+        cleaner: "Welcome!",
+      };
+      toast.success(greetings[me.role] || "Signed in");
+      const dest = `/${me.role}`;
+      navigate(dest, { replace: true });
+    } finally {
+      setSubmitting(false);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     }
   };
 
@@ -386,14 +429,23 @@ const LoginPage = () => {
                                         </Button>
                                         <Button
                                             type="submit"
+<<<<<<< HEAD
                                             className={`flex-[2] h-12 sm:h-14 rounded-2xl text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border shadow-xl ${
+=======
+                                            disabled={submitting}
+                                            className={`flex-[2] h-12 sm:h-14 rounded-2xl text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border shadow-xl disabled:opacity-60 disabled:cursor-not-allowed ${
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                                                 selectedRole === 'kitchen' ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-orange-500/40 border-orange-400/50' :
                                                 selectedRole === 'cleaner' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-purple-500/40 border-purple-400/50' :
                                                 selectedRole === 'server' ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:shadow-amber-500/40 border-amber-400/50' :
                                                 selectedRole === 'manager' ? 'bg-gradient-to-r from-teal-500 to-teal-600 hover:shadow-teal-500/40 border-teal-400/50' :
                                                 'bg-gradient-to-r from-primary to-primary/80 hover:shadow-primary/40 border-primary/50'
                                             }`}>
+<<<<<<< HEAD
                                             Authenticate Access
+=======
+                                            {submitting ? "Authenticating…" : "Authenticate Access"}
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                                         </Button>
                                     </div>
                                 </div>

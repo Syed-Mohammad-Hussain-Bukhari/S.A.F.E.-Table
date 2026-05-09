@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -100,3 +101,60 @@ export const useStaff = create()(
     }
   )
 );
+=======
+/**
+ * Staff — backend-backed thin wrapper over /api/staff.
+ *
+ * Most pages now use useAuth.{approvedUsers, refreshStaff, …} directly. This
+ * hook stays for the few legacy spots that did `const { staff } = useStaff()`
+ * — it returns the same array under that name.
+ */
+import { create } from "zustand";
+import { staffApi } from "@/lib/api";
+
+export const useStaff = create((set) => ({
+  staff: [],
+  loading: false,
+  error: null,
+
+  refresh: async (params = {}) => {
+    set({ loading: true, error: null });
+    try {
+      const r = await staffApi.list(params);
+      set({ staff: r.staff || [], loading: false });
+    } catch (err) {
+      set({ loading: false, error: err.message });
+    }
+  },
+
+  addStaff: async (newStaff) => {
+    const created = await staffApi.create({
+      username:  newStaff.username,
+      password:  newStaff.password || newStaff.pin,
+      full_name: newStaff.name || newStaff.full_name,
+      role:      newStaff.role,
+      email:     newStaff.email || null,
+      phone:     newStaff.phone || null,
+    });
+    set((s) => ({ staff: [...s.staff, created] }));
+    return created;
+  },
+
+  updateStaff: async (username, updates) => {
+    const updated = await staffApi.update(username, updates);
+    set((s) => ({
+      staff: s.staff.map((m) => (m.username === username ? updated : m)),
+    }));
+    return updated;
+  },
+
+  removeStaff: async (username) => {
+    await staffApi.remove(username);
+    set((s) => ({ staff: s.staff.filter((m) => m.username !== username) }));
+  },
+
+  getStaff: () => useStaff.getState().staff,
+}));
+
+export default useStaff;
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)

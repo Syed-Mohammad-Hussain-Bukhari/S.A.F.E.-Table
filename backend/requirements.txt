@@ -15,3 +15,7 @@ aiofiles==24.1.0
 stripe==10.12.0
 qrcode[pil]==7.4.2
 Pillow==10.4.0
+<<<<<<< HEAD
+=======
+slowapi==0.1.9
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)

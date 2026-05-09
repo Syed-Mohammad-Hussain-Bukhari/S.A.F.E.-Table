@@ -23,6 +23,21 @@ class UserLogin(BaseModel):
     password: str
 
 
+<<<<<<< HEAD
+=======
+class SignupRequest(BaseModel):
+    """Public signup — submits an approval request, not a user.
+    Approval row is materialized into `users` only when an admin approves it.
+    """
+    full_name: str = Field(..., min_length=1, max_length=100)
+    email: Optional[str] = None
+    username: str = Field(..., min_length=3, max_length=50)
+    phone: Optional[str] = None
+    password: str = Field(..., min_length=6, max_length=128)
+    role: str = Field(..., description="kitchen | server | cleaner | manager")
+
+
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=6)

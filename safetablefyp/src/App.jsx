@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import { useEffect } from "react";
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,14 +39,34 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ProfileSettings from "./pages/common/ProfileSettings";
 import SecuritySettings from "./pages/common/SecuritySettings";
 
+<<<<<<< HEAD
 const queryClient = new QueryClient();
 
 const App = () =>
 <QueryClientProvider client={queryClient}>
+=======
+import { useAuth } from "@/hooks/useAuth";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 30_000 },
+  },
+});
+
+const Bootstrap = ({ children }) => {
+  const bootstrap = useAuth((s) => s.bootstrap);
+  useEffect(() => { bootstrap(); }, [bootstrap]);
+  return children;
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+<<<<<<< HEAD
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/menu" element={<MenuPage />} />
@@ -150,3 +174,116 @@ const App = () =>
 
 
 export default App;
+=======
+        <Bootstrap>
+          <Routes>
+            {/* Public — landing + auth */}
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+
+            {/* Customer-facing — open by design (the customer ticket gates
+                writes server-side; reads here are public). */}
+            <Route path="/menu" element={<MenuPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/voice-order" element={<VoiceOrderPage />} />
+            <Route path="/ai-personalization" element={<AIPersonalizationPage />} />
+            <Route path="/qr-payments" element={<QRPaymentsPage />} />
+            <Route path="/ambience-control" element={<AmbienceControlPage />} />
+            <Route path="/languages" element={<LanguagesPage />} />
+
+            {/* Kitchen */}
+            <Route
+              path="/kitchen"
+              element={
+                <ProtectedRoute allowedRoles={["kitchen", "manager", "admin"]}>
+                  <KitchenLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<KitchenDashboard />} />
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="security" element={<SecuritySettings />} />
+            </Route>
+
+            {/* Cleaner */}
+            <Route
+              path="/cleaner"
+              element={
+                <ProtectedRoute allowedRoles={["cleaner", "manager", "admin"]}>
+                  <CleanerLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<CleanerDashboard />} />
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="security" element={<SecuritySettings />} />
+            </Route>
+
+            {/* Server */}
+            <Route
+              path="/server"
+              element={
+                <ProtectedRoute allowedRoles={["server", "manager", "admin"]}>
+                  <ServerLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<ServerDashboard />} />
+              <Route path="tables" element={<TableManagement />} />
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="security" element={<SecuritySettings />} />
+            </Route>
+
+            {/* Manager */}
+            <Route
+              path="/manager"
+              element={
+                <ProtectedRoute allowedRoles={["manager", "admin"]}>
+                  <ManagerLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<ManagerDashboard />} />
+              <Route path="kitchen" element={<KitchenDashboard />} />
+              <Route path="server" element={<ServerDashboard />} />
+              <Route path="cleaner" element={<CleanerDashboard />} />
+              <Route path="tables" element={<TableManagement />} />
+              <Route path="approvals" element={<ApprovalsPage />} />
+              <Route path="staff" element={<StaffPage />} />
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="security" element={<SecuritySettings />} />
+            </Route>
+
+            {/* Admin */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="kitchen" element={<KitchenDashboard />} />
+              <Route path="kitchen-track" element={<KitchenTrackPage />} />
+              <Route path="staff" element={<StaffPage />} />
+              <Route path="approvals" element={<ApprovalsPage />} />
+              <Route path="sales" element={<SalesReportPage />} />
+              <Route path="cleaner" element={<CleanerDashboard />} />
+              <Route path="server" element={<ServerDashboard />} />
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="security" element={<SecuritySettings />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Bootstrap>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)

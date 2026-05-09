@@ -2,8 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+<<<<<<< HEAD
 import { Search, Trash2, Edit, UserPlus, Mail, Phone, User as UserIcon, Briefcase, ShieldBan, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+=======
+import { Search, Trash2, Edit, UserPlus, Mail, Phone, User as UserIcon, Briefcase, ShieldBan, ShieldCheck, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -30,10 +35,25 @@ import { toast } from "sonner";
 
 const StaffPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+<<<<<<< HEAD
   const { approvedUsers, signup, approveUser, updateProfile, deleteUser, toggleUserStatus } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [staffToDelete, setStaffToDelete] = useState(null);
+=======
+  const {
+    approvedUsers,
+    signup,
+    refreshStaff,
+    updateProfile,
+    deleteUser,
+    toggleUserStatus,
+    staffLoading,
+  } = useAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);     // holds username
+  const [staffToDelete, setStaffToDelete] = useState(null); // holds username
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   // Form State
   const [formData, setFormData] = useState({
@@ -45,10 +65,20 @@ const StaffPage = () => {
     pin: "123456"
   });
 
+<<<<<<< HEAD
   const filteredStaff = approvedUsers.filter((member) =>
   member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
   member.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
   member.username && member.username.toLowerCase().includes(searchTerm.toLowerCase())
+=======
+  // Load staff on mount.
+  useEffect(() => { refreshStaff().catch(() => {}); }, [refreshStaff]);
+
+  const filteredStaff = (approvedUsers || []).filter((member) =>
+    (member.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (member.role || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (member.username || "").toLowerCase().includes(searchTerm.toLowerCase())
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   );
 
   const handleOpenAdd = () => {
@@ -58,25 +88,42 @@ const StaffPage = () => {
   };
 
   const handleEdit = (member) => {
+<<<<<<< HEAD
     setEditingId(member.id);
     setFormData({
       name: member.name,
+=======
+    setEditingId(member.username);
+    setFormData({
+      name: member.name || member.full_name || "",
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
       role: member.role,
       email: member.email || "",
       username: member.username || "",
       phone: member.phone || "",
+<<<<<<< HEAD
       pin: member.pin || "" // Keep existing PIN if not changed
+=======
+      pin: ""
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     });
     setIsDialogOpen(true);
   };
 
+<<<<<<< HEAD
   const handleSubmit = () => {
     if (!formData.name || !formData.email || !formData.username) {
       toast.error("Please fill in all required fields");
+=======
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.username) {
+      toast.error("Name and username are required");
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
       return;
     }
 
     if (editingId) {
+<<<<<<< HEAD
       // Update
       updateProfile(editingId, {
         name: formData.name,
@@ -89,12 +136,25 @@ const StaffPage = () => {
     } else {
       // Add New
       const result = signup(
+=======
+      const r = await updateProfile(editingId, {
+        name: formData.name,
+        role: formData.role,
+        email: formData.email,
+        phone: formData.phone,
+      });
+      if (r.success) toast.success("Staff profile updated");
+      else { toast.error(r.message || "Update failed"); return; }
+    } else {
+      const result = await signup(
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
         formData.name,
         formData.email,
         formData.username,
         formData.phone,
         formData.pin,
         formData.role,
+<<<<<<< HEAD
         'approved' // Automatically approve admin-created users
       );
 
@@ -106,10 +166,18 @@ const StaffPage = () => {
       }
     }
 
+=======
+        "approved", // admin-created → straight into the users collection
+      );
+      if (!result.success) { toast.error(result.message || "Failed to add staff"); return; }
+      toast.success("Staff member added successfully");
+    }
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     setIsDialogOpen(false);
     setEditingId(null);
   };
 
+<<<<<<< HEAD
   const handleDelete = () => {
     if (staffToDelete) {
       deleteUser(staffToDelete);
@@ -128,6 +196,22 @@ const StaffPage = () => {
     } else {
       toast.success(`User ${newStatus === 'suspended' ? 'suspended' : 'activated'}`);
     }
+=======
+  const handleDelete = async () => {
+    if (!staffToDelete) return;
+    try { await deleteUser(staffToDelete); toast.success("Staff member removed"); }
+    catch (err) { toast.error(err.message); }
+    finally { setStaffToDelete(null); }
+  };
+
+  const handleToggleStatus = async (member) => {
+    const isInactive = member.status === "suspended" || member.status === "locked";
+    const newStatus = isInactive ? "approved" : "suspended";
+    try {
+      await toggleUserStatus(member.username, newStatus);
+      toast.success(newStatus === "suspended" ? "User suspended" : "User activated");
+    } catch (err) { toast.error(err.message); }
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   };
 
   return (
@@ -284,8 +368,14 @@ const StaffPage = () => {
                 className="pl-9 bg-input border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)} />
+<<<<<<< HEAD
               
                         </div>
+=======
+
+                        </div>
+                        {staffLoading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                     </div>
 
                     <div className="rounded-md border border-border">
@@ -302,7 +392,11 @@ const StaffPage = () => {
                             </TableHeader>
                             <TableBody>
                                 {filteredStaff.map((member) =>
+<<<<<<< HEAD
                 <TableRow key={member.id} className="border-border hover:bg-muted/50">
+=======
+                <TableRow key={member.username} className="border-border hover:bg-muted/50">
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                                         <TableCell className="font-medium text-foreground">{member.name}</TableCell>
                                         <TableCell className="text-muted-foreground capitalize">{member.role}</TableCell>
                                         <TableCell className="text-muted-foreground">
@@ -347,8 +441,13 @@ const StaffPage = () => {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+<<<<<<< HEAD
                         onClick={() => setStaffToDelete(member.id)}>
                         
+=======
+                        onClick={() => setStaffToDelete(member.username)}>
+
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>

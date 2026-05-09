@@ -13,7 +13,11 @@ const ProfileSettings = () => {
   const { user, updateProfile } = useAuth();
 
   const [formData, setFormData] = useState({
+<<<<<<< HEAD
     name: user?.name || "",
+=======
+    name: user?.full_name || user?.name || "",
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     email: user?.email || "",
     username: user?.username || "",
     phone: user?.phone || ""
@@ -50,6 +54,7 @@ const ProfileSettings = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     setIsLoading(true);
 
     // Simulate API delay
@@ -64,6 +69,17 @@ const ProfileSettings = () => {
       }
     }
     setIsLoading(false);
+=======
+    if (!user?.username) return;
+    setIsLoading(true);
+    try {
+      const result = await updateProfile(user.username, formData);
+      if (result.success) toast.success("Profile updated successfully");
+      else toast.error(result.message || "Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   };
 
   return (

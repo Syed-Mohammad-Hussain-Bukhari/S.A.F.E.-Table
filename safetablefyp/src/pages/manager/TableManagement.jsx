@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+<<<<<<< HEAD
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
   DialogTrigger,
@@ -21,17 +22,30 @@ import {
   Plus, Trash2, Armchair, Users, Ban, Clock, CheckCircle2,
   Search, LayoutGrid } from
 "lucide-react";
+=======
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useTables } from "@/hooks/useTables";
+import { useEffect, useMemo, useState } from "react";
+import { Armchair, Users, Ban, Clock, CheckCircle2, Search, LayoutGrid } from "lucide-react";
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
 
 const TableManagement = () => {
+<<<<<<< HEAD
   const { tables, updateStatus, addTable, removeTable, initializeTables } = useTables();
   const { user } = useAuth();
+=======
+  const { tables, updateStatus, refresh } = useTables();
+  // useAuth left in for future use; manager/admin gating is enforced at the route layer.
+  useAuth();
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   const [selectedTable, setSelectedTable] = useState(null);
   const [activeStatusTab, setActiveStatusTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState("");
 
+<<<<<<< HEAD
   // New Table State
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTableSeats, setNewTableSeats] = useState("4");
@@ -44,6 +58,14 @@ const TableManagement = () => {
       initializeTables(20);
     }
   }, [initializeTables, tables]);
+=======
+  // Pull live sessions from the backend, polled.
+  useEffect(() => {
+    refresh();
+    const t = setInterval(refresh, 8000);
+    return () => clearInterval(t);
+  }, [refresh]);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   // Stats Calculation
   const stats = useMemo(() => {
@@ -63,6 +85,7 @@ const TableManagement = () => {
     return matchesStatusTab && matchesSearch;
   });
 
+<<<<<<< HEAD
   const handleStatusUpdate = (status) => {
     if (selectedTable) {
       updateStatus(selectedTable.id, status);
@@ -73,6 +96,12 @@ const TableManagement = () => {
   const handleAddTable = () => {
     addTable(parseInt(newTableSeats) || 4);
     setIsAddDialogOpen(false);
+=======
+  const handleStatusUpdate = async (status) => {
+    if (!selectedTable) return;
+    await updateStatus(selectedTable.id, status);
+    setSelectedTable(null);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   };
 
   const getStatusColor = (status) => {
@@ -104,6 +133,7 @@ const TableManagement = () => {
                         <h1 className="text-3xl font-bold text-foreground">Table Management</h1>
                         <p className="text-sm text-muted-foreground">Real-time floor plan and status tracking</p>
                     </div>
+<<<<<<< HEAD
                     {isManagerOrAdmin &&
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                             <DialogTrigger asChild>
@@ -135,6 +165,9 @@ const TableManagement = () => {
                             </DialogContent>
                         </Dialog>
           }
+=======
+                    {/* Tables are managed server-side via sessions; this UI updates session state. */}
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                 </div>
 
                 {/* Stats Bar */}
@@ -301,6 +334,7 @@ const TableManagement = () => {
                         </Button>
                     </div>
 
+<<<<<<< HEAD
                     {isManagerOrAdmin &&
           <DialogFooter>
                             <Button
@@ -317,6 +351,9 @@ const TableManagement = () => {
                             </Button>
                         </DialogFooter>
           }
+=======
+                    {/* Removing tables is not supported via the sessions API. */}
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                 </DialogContent>
             </Dialog>
         </div>);

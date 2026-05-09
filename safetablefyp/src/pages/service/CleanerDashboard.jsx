@@ -12,17 +12,33 @@ import { useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CleanerDashboard = () => {
+<<<<<<< HEAD
   const { requests, resolveService } = useService();
   const { logout, user } = useAuth();
+=======
+  const { requests, resolveService, refresh: refreshService } = useService();
+  const { user } = useAuth();
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   const location = useLocation();
   const isAdminView = location.pathname.startsWith('/admin');
   const [now, setNow] = useState(new Date());
   const prevRequestsLength = useRef(requests.length);
 
   useEffect(() => {
+<<<<<<< HEAD
     const interval = setInterval(() => setNow(new Date()), 60000); // Update every minute
     return () => clearInterval(interval);
   }, []);
+=======
+    refreshService({ role: "cleaner", status_filter: "pending" }).catch(() => {});
+    const refreshTimer = setInterval(
+      () => refreshService({ role: "cleaner", status_filter: "pending" }).catch(() => {}),
+      8000,
+    );
+    const tickTimer = setInterval(() => setNow(new Date()), 60000);
+    return () => { clearInterval(refreshTimer); clearInterval(tickTimer); };
+  }, [refreshService]);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   // Sound Alert Logic
   useEffect(() => {
@@ -54,8 +70,13 @@ const CleanerDashboard = () => {
     ).sort((a, b) => new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime());
   }, [requests]);
 
+<<<<<<< HEAD
   const handleResolve = (id, tableNumber) => {
     resolveService(id);
+=======
+  const handleResolve = async (id, tableNumber) => {
+    await resolveService(id);
+>>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     toast.success(`Table ${tableNumber} marked as clean!`);
   };
 
