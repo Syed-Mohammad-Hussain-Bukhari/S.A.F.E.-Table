@@ -1,31 +1,4 @@
 """
-<<<<<<< HEAD
-Task Management Routes — for Server & Cleaner Portals
-
-Endpoints:
-  GET    /api/tasks                 — list tasks (filter by role, status, assignee)
-  POST   /api/tasks                 — create a new task (manager/admin)
-  GET    /api/tasks/{task_id}       — get task by ID
-  PATCH  /api/tasks/{task_id}/status — update task status
-  DELETE /api/tasks/{task_id}       — delete task
-
-Example Request (create task):
-  POST /api/tasks
-  {"title": "Clean Table 5", "assigned_to": "cleaner1", "role": "cleaner", "priority": "high", "table_number": 5}
-
-Example Response:
-  {"task_id": "TSK-...", "title": "...", "status": "pending", ...}
-"""
-from fastapi import APIRouter, HTTPException
-from app.database import get_database
-from app.models.task import TaskCreate, TaskStatusUpdate
-from bson import ObjectId
-from datetime import datetime
-import uuid
-
-router = APIRouter(prefix="/api/tasks", tags=["Tasks"])
-
-=======
 Task Management Routes.
 
 Hardening:
@@ -36,7 +9,6 @@ Hardening:
 """
 import uuid
 from datetime import datetime
-
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -57,52 +29,16 @@ TASK_TRANSITIONS: dict[str, set[str]] = {
 
 ASSIGNABLE_ROLES = {"server", "cleaner", "kitchen", "manager", "admin"}
 
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
-
 def _generate_task_id() -> str:
     return f"TSK-{uuid.uuid4().hex[:8].upper()}"
 
-
 def _serialize(task: dict) -> dict:
     task["_id"] = str(task["_id"])
-<<<<<<< HEAD
-    # Convert datetime fields to string for JSON
-    for field in ["created_at", "updated_at"]:
-=======
     for field in ("created_at", "updated_at"):
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
         if isinstance(task.get(field), datetime):
             task[field] = task[field].isoformat()
     return task
 
-
-<<<<<<< HEAD
-@router.get("")
-async def list_tasks(
-    role: str = None,
-    status: str = None,
-    assigned_to: str = None,
-    table_number: int = None,
-):
-    """
-    List all tasks with optional filters.
-
-    Examples:
-      GET /api/tasks?role=cleaner&status=pending
-      GET /api/tasks?assigned_to=john_server
-    """
-    db = get_database()
-    query = {}
-    if role:
-        query["role"] = role
-    if status:
-        query["status"] = status
-    if assigned_to:
-        query["assigned_to"] = assigned_to
-    if table_number:
-        query["table_number"] = table_number
-
-=======
 # ─── Reads (any staff role) ──────────────────────────────────────────────
 
 @router.get("")
@@ -135,29 +71,11 @@ async def list_tasks(
     if actor["role"] not in {"manager", "admin"}:
         query["assigned_to"] = actor["username"]
 
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     tasks = []
     cursor = db.tasks.find(query).sort("created_at", -1)
     async for task in cursor:
         tasks.append(_serialize(task))
-<<<<<<< HEAD
-
     return {"tasks": tasks, "total": len(tasks)}
-
-
-@router.post("", status_code=201)
-async def create_task(task: TaskCreate):
-    """
-    Create a new task and assign it to a staff member.
-
-    Priority: low | medium | high
-    Role: server | cleaner | kitchen
-    """
-    db = get_database()
-
-=======
-    return {"tasks": tasks, "total": len(tasks)}
-
 
 # ─── Creation (manager/admin) ────────────────────────────────────────────
 
@@ -183,7 +101,6 @@ async def create_task(
         )
 
     now = utcnow()
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     task_dict = {
         "task_id": _generate_task_id(),
         "title": task.title,
@@ -191,14 +108,6 @@ async def create_task(
         "assigned_to": task.assigned_to,
         "role": task.role,
         "priority": task.priority.value,
-<<<<<<< HEAD
-        "status": "pending",
-        "table_number": task.table_number,
-        "due_time": task.due_time,
-        "notes": None,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
-=======
         "status": TaskStatus.PENDING.value,
         "table_number": task.table_number,
         "due_time": task.due_time,
@@ -206,19 +115,12 @@ async def create_task(
         "created_at": now,
         "updated_at": now,
         "created_by": actor["username"],
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     }
 
     result = await db.tasks.insert_one(task_dict)
     task_dict["_id"] = str(result.inserted_id)
     return _serialize(task_dict)
 
-
-<<<<<<< HEAD
-@router.get("/{task_id}")
-async def get_task(task_id: str):
-    """Get a single task by task_id (e.g. TSK-ABCD1234) or MongoDB _id."""
-=======
 # ─── Per-task ────────────────────────────────────────────────────────────
 
 @router.get("/{task_id}")
@@ -226,66 +128,30 @@ async def get_task(
     task_id: str,
     actor: dict = Depends(require_roles(*ASSIGNABLE_ROLES)),
 ):
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     db = get_database()
     task = await db.tasks.find_one({"task_id": task_id})
     if not task and ObjectId.is_valid(task_id):
         task = await db.tasks.find_one({"_id": ObjectId(task_id)})
     if not task:
-<<<<<<< HEAD
-        raise HTTPException(status_code=404, detail="Task not found")
-=======
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Task not found")
 
     if actor["role"] not in {"manager", "admin"} and task.get("assigned_to") != actor["username"]:
         raise HTTPException(status.HTTP_403_FORBIDDEN,
                             "You can only view tasks assigned to you")
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     return _serialize(task)
 
-
 @router.patch("/{task_id}/status")
-<<<<<<< HEAD
-async def update_task_status(task_id: str, update: TaskStatusUpdate):
-    """
-    Update task status.
-    Valid statuses: pending → in_progress → completed | cancelled
-
-    Example:
-        PATCH /api/tasks/TSK-ABC12345/status
-        {"status": "completed", "notes": "Table cleaned and sanitised"}
-    """
-    db = get_database()
-
-=======
 async def update_task_status(
     task_id: str,
     update: TaskStatusUpdate,
     actor: dict = Depends(require_roles(*ASSIGNABLE_ROLES)),
 ):
-    """Transition a task. Enforces:
-      • State machine (no skipping or reverting).
-      • CAS on prior status (no lost updates under concurrency).
-      • Authorization (only assignee or manager+ may update).
-    """
+    """Transition a task status."""
     db = get_database()
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     task = await db.tasks.find_one({"task_id": task_id})
     if not task and ObjectId.is_valid(task_id):
         task = await db.tasks.find_one({"_id": ObjectId(task_id)})
     if not task:
-<<<<<<< HEAD
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    update_data = {
-        "status": update.status.value,
-        "updated_at": datetime.utcnow(),
-    }
-    if update.notes:
-        update_data["notes"] = update.notes
-
-    await db.tasks.update_one({"_id": task["_id"]}, {"$set": update_data})
-=======
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Task not found")
 
     if actor["role"] not in {"manager", "admin"} and task.get("assigned_to") != actor["username"]:
@@ -296,15 +162,13 @@ async def update_task_status(
     new_status = update.status.value
 
     if new_status == current:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                            "Task is already in that status")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Task is already in that status")
 
     allowed = TASK_TRANSITIONS.get(current, set())
     if new_status not in allowed:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            f"Invalid task transition '{current}' → '{new_status}'. "
-            f"Allowed: {sorted(allowed)}",
+            f"Invalid transition '{current}' → '{new_status}'. Allowed: {sorted(allowed)}",
         )
 
     now = utcnow()
@@ -323,24 +187,11 @@ async def update_task_status(
     if result.modified_count == 0:
         raise HTTPException(status.HTTP_409_CONFLICT,
                             "Task changed concurrently; refresh and retry")
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
     updated = await db.tasks.find_one({"_id": task["_id"]})
     return _serialize(updated)
 
-
 @router.delete("/{task_id}")
-<<<<<<< HEAD
-async def delete_task(task_id: str):
-    """Delete a task by task_id."""
-    db = get_database()
-    result = await db.tasks.delete_one({"task_id": task_id})
-    if result.deleted_count == 0:
-        if ObjectId.is_valid(task_id):
-            result = await db.tasks.delete_one({"_id": ObjectId(task_id)})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Task not found")
-=======
 async def delete_task(
     task_id: str,
     _: dict = Depends(require_roles("manager", "admin")),
@@ -351,5 +202,4 @@ async def delete_task(
         result = await db.tasks.delete_one({"_id": ObjectId(task_id)})
     if result.deleted_count == 0:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Task not found")
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     return {"message": f"Task '{task_id}' deleted successfully"}

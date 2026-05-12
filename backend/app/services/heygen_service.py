@@ -1,28 +1,3 @@
-<<<<<<< HEAD
-import httpx, base64
-from app.config import settings
-
-async def text_to_speech(text: str) -> dict:
-    if not settings.HEYGEN_API_KEY:
-        return {"audio_base64": None, "use_browser_tts": True}
-
-    async with httpx.AsyncClient() as client:
-        # Tries the HeyGen V2 compatible TTS API utilizing the provided HeyGen key
-        res = await client.post(
-            "https://api.heygen.com/v2/tts",
-            headers={"X-Api-Key": settings.HEYGEN_API_KEY},
-            json={"text": text, "voice_id": "1bd001e7e50f421d891986aad5158bc8", "output_format": "mp3"}
-        )
-        
-        if res.status_code == 200:
-            data = res.json()
-            audio_url = data.get("data", {}).get("audio_url")
-            if audio_url:
-                audio_res = await client.get(audio_url)
-                return {"audio_base64": base64.b64encode(audio_res.content).decode(), "content_type": "audio/mpeg", "use_browser_tts": False}
-    
-    return {"audio_base64": None, "use_browser_tts": True}
-=======
 """
 HeyGen TTS Service.
 
@@ -30,15 +5,13 @@ SSRF-hardened:
   • The audio_url returned by HeyGen is validated against an allow-list of
     known HeyGen CDN hostnames before we follow it.
   • The httpx client disables redirects so an attacker-controlled redirect
-    chain cannot pivot us onto an internal address (cloud metadata, loopback).
+    chain cannot pivot us onto an internal address.
   • Schemes other than https are rejected.
   • Audio response is size-capped so a malicious URL cannot exhaust memory.
 """
 import base64
 from urllib.parse import urlparse
-
 import httpx
-
 from app.config import settings
 
 # Hosts HeyGen serves audio assets from. Update if HeyGen changes their CDN.
@@ -78,6 +51,7 @@ async def text_to_speech(text: str) -> dict:
 
     if not isinstance(text, str) or not text.strip():
         return {"audio_base64": None, "use_browser_tts": True}
+    
     text = text[:_MAX_TEXT_CHARS]
 
     async with httpx.AsyncClient(
@@ -90,7 +64,7 @@ async def text_to_speech(text: str) -> dict:
                 headers={"X-Api-Key": settings.HEYGEN_API_KEY},
                 json={
                     "text": text,
-                    "voice_id": settings.HEYGEN_VOICE_ID,
+                    "voice_id": settings.HEYGEN_VOICE_ID or "1bd001e7e50f421d891986aad5158bc8",
                     "output_format": "mp3",
                 },
             )
@@ -102,7 +76,7 @@ async def text_to_speech(text: str) -> dict:
 
         try:
             audio_url = (res.json().get("data") or {}).get("audio_url")
-        except ValueError:
+        except (ValueError, AttributeError):
             return {"audio_base64": None, "use_browser_tts": True}
 
         if not audio_url:
@@ -131,4 +105,3 @@ async def text_to_speech(text: str) -> dict:
             "content_type": "audio/mpeg",
             "use_browser_tts": False,
         }
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)

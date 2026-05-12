@@ -4,13 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
-<<<<<<< HEAD
-import { useOrders } from "@/hooks/useOrders";
-
-const LandingPage = () => {
-  const { getActiveOrders, tableNumber } = useOrders();
-  const activeOrders = getActiveOrders();
-=======
 import { useEffect } from "react";
 import { useOrders } from "@/hooks/useOrders";
 import { useCustomerSession } from "@/hooks/useCustomerSession";
@@ -18,33 +11,35 @@ import { useCustomerSession } from "@/hooks/useCustomerSession";
 const LandingPage = () => {
   const { tableNumber } = useCustomerSession();
   const { orders, refreshForTable } = useOrders();
+  
+  // Filter for active orders belonging to this specific table
   const activeOrders = orders.filter(
     (o) => o.tableNumber === tableNumber && o.status !== "completed" && o.status !== "cancelled",
   );
 
+  // Auto-refresh orders when the landing page loads to show the correct count
   useEffect(() => {
     if (tableNumber) refreshForTable(tableNumber);
   }, [tableNumber, refreshForTable]);
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Floating Orders Indicator - Vertically Centered */}
+      {/* Floating Orders Indicator - Shows when there are items in the kitchen */}
       <AnimatePresence>
-        {activeOrders.length > 0 &&
-        <Link to="/orders">
+        {activeOrders.length > 0 && (
+          <Link to="/orders">
             <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            whileHover={{ scale: 1.05, x: -5 }}
-            whileTap={{ scale: 0.95 }}
-            className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center gap-3 bg-green-600 text-white rounded-l-2xl py-4 px-5 shadow-[0_4px_25px_rgba(34,197,94,0.5)] cursor-pointer transition-all duration-300 hover:brightness-110">
-            
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              whileHover={{ scale: 1.05, x: -5 }}
+              whileTap={{ scale: 0.95 }}
+              className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center gap-3 bg-green-600 text-white rounded-l-2xl py-4 px-5 shadow-[0_4px_25px_rgba(34,197,94,0.5)] cursor-pointer transition-all duration-300 hover:brightness-110"
+            >
               <motion.div
-              animate={{ rotate: [0, -10, 10, -10, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}>
-              
+                animate={{ rotate: [0, -10, 10, -10, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+              >
                 <ChefHat className="w-6 h-6" />
               </motion.div>
               <div className="flex flex-col items-start">
@@ -52,17 +47,17 @@ const LandingPage = () => {
                 <span className="text-lg font-bold leading-tight">{activeOrders.length}</span>
               </div>
               <motion.div
-              animate={{ x: [0, 5, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}>
-              
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
                 <ArrowRight className="w-5 h-5" />
               </motion.div>
             </motion.div>
           </Link>
-        }
+        )}
       </AnimatePresence>
 
-      {/* Table Indicator / Selector */}
+      {/* Top Navigation / Status Bar */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-4">
         <Link to="/login">
           <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-white">
@@ -70,13 +65,10 @@ const LandingPage = () => {
           </Button>
         </Link>
         <div className="bg-background/80 backdrop-blur-md border border-primary/20 px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-<<<<<<< HEAD
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-sm font-medium">Table #{tableNumber}</span>
-=======
           <span className={`w-2 h-2 rounded-full ${tableNumber ? "bg-green-500 animate-pulse" : "bg-muted-foreground"}`} />
-          <span className="text-sm font-medium">{tableNumber ? `Table #${tableNumber}` : "No table"}</span>
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
+          <span className="text-sm font-medium">
+            {tableNumber ? `Table #${tableNumber}` : "No table"}
+          </span>
         </div>
       </div>
 
@@ -92,8 +84,8 @@ const LandingPage = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center">
-            
+            className="max-w-4xl mx-auto text-center"
+          >
             <h2 className="text-4xl lg:text-5xl font-bold mb-6">
               Ready to Experience the{" "}
               <span className="text-gradient-primary">Future</span>?
@@ -122,7 +114,7 @@ const LandingPage = () => {
         <div className="container px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2025 <span className="text-gradient-primary font-semibold">S.A.F.E.</span> Table. All rights reserved.
+              © 2026 <span className="text-gradient-primary font-semibold">S.A.F.E.</span> Table. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-primary transition-colors">Privacy</a>
@@ -132,8 +124,8 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
-    </div>);
-
+    </div>
+  );
 };
 
 export default LandingPage;

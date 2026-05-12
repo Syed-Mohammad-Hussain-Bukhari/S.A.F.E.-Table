@@ -11,176 +11,101 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [password, setPassword] = useState("");
-<<<<<<< HEAD
-=======
-  const [submitting, setSubmitting] = useState(false);
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const [selectedRole, setSelectedRole] = useState(null);
+    const [password, setPassword] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [identifier, setIdentifier] = useState(""); // Email or Username
 
-  const [identifier, setIdentifier] = useState(""); // Email or Username
+    const getSlotStyling = (role) => {
+        const baseClass = "flex-shrink-0 w-9 h-12 text-2xl sm:w-11 sm:h-14 sm:text-3xl md:w-12 md:h-16 md:text-3xl font-black rounded-xl sm:rounded-2xl border-2 bg-background/50 backdrop-blur-xl shadow-inner outline-none overflow-hidden text-muted-foreground/30 transition-all duration-300";
+        let borderColors = "";
+        let activeClass = "";
+        let hasValueClass = "";
 
-  const getSlotStyling = (role) => {
-    const baseClass = "flex-shrink-0 w-9 h-12 text-2xl sm:w-11 sm:h-14 sm:text-3xl md:w-12 md:h-16 md:text-3xl font-black rounded-xl sm:rounded-2xl border-2 bg-background/50 backdrop-blur-xl shadow-inner outline-none overflow-hidden text-muted-foreground/30 transition-all duration-300";
-    
-    let borderColors = "";
-    let activeClass = "";
-    let hasValueClass = "";
+        switch (role) {
+            case 'kitchen':
+                borderColors = "border-orange-500/20";
+                activeClass = "border-orange-500 ring-4 ring-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.5)] -translate-y-2 bg-orange-500/5 text-orange-500 scale-[1.03]";
+                hasValueClass = "border-orange-500/60 shadow-[0_0_20px_rgba(249,115,22,0.2)] text-orange-500 bg-orange-500/5 scale-[1.02]";
+                break;
+            case 'cleaner':
+                borderColors = "border-purple-500/20";
+                activeClass = "border-purple-500 ring-4 ring-purple-500/20 shadow-[0_0_30px_rgba(147,51,234,0.5)] -translate-y-2 bg-purple-500/5 text-purple-500 scale-[1.03]";
+                hasValueClass = "border-purple-500/60 shadow-[0_0_20px_rgba(147,51,234,0.2)] text-purple-500 bg-purple-500/5 scale-[1.02]";
+                break;
+            case 'server':
+                borderColors = "border-amber-500/20";
+                activeClass = "border-amber-500 ring-4 ring-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.5)] -translate-y-2 bg-amber-500/5 text-amber-500 scale-[1.03]";
+                hasValueClass = "border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.2)] text-amber-500 bg-amber-500/5 scale-[1.02]";
+                break;
+            case 'manager':
+                borderColors = "border-teal-500/20";
+                activeClass = "border-teal-500 ring-4 ring-teal-500/20 shadow-[0_0_30px_rgba(20,184,166,0.5)] -translate-y-2 bg-teal-500/5 text-teal-500 scale-[1.03]";
+                hasValueClass = "border-teal-500/60 shadow-[0_0_20px_rgba(20,184,166,0.2)] text-teal-500 bg-teal-500/5 scale-[1.02]";
+                break;
+            default:
+                borderColors = "border-primary/20";
+                activeClass = "border-primary ring-4 ring-primary/20 shadow-[0_0_30px_rgba(var(--primary),0.5)] -translate-y-2 bg-primary/5 text-primary scale-[1.03]";
+                hasValueClass = "border-primary/60 shadow-[0_0_20px_rgba(var(--primary),0.2)] text-primary bg-primary/5 scale-[1.02]";
+        }
 
-    switch (role) {
-        case 'kitchen':
-            borderColors = "border-orange-500/20";
-            activeClass = "border-orange-500 ring-4 ring-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.5)] -translate-y-2 bg-orange-500/5 text-orange-500 scale-[1.03]";
-            hasValueClass = "border-orange-500/60 shadow-[0_0_20px_rgba(249,115,22,0.2)] text-orange-500 bg-orange-500/5 scale-[1.02]";
-            break;
-        case 'cleaner':
-            borderColors = "border-purple-500/20";
-            activeClass = "border-purple-500 ring-4 ring-purple-500/20 shadow-[0_0_30px_rgba(147,51,234,0.5)] -translate-y-2 bg-purple-500/5 text-purple-500 scale-[1.03]";
-            hasValueClass = "border-purple-500/60 shadow-[0_0_20px_rgba(147,51,234,0.2)] text-purple-500 bg-purple-500/5 scale-[1.02]";
-            break;
-        case 'server':
-            borderColors = "border-amber-500/20";
-            activeClass = "border-amber-500 ring-4 ring-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.5)] -translate-y-2 bg-amber-500/5 text-amber-500 scale-[1.03]";
-            hasValueClass = "border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.2)] text-amber-500 bg-amber-500/5 scale-[1.02]";
-            break;
-        case 'manager':
-            borderColors = "border-teal-500/20";
-            activeClass = "border-teal-500 ring-4 ring-teal-500/20 shadow-[0_0_30px_rgba(20,184,166,0.5)] -translate-y-2 bg-teal-500/5 text-teal-500 scale-[1.03]";
-            hasValueClass = "border-teal-500/60 shadow-[0_0_20px_rgba(20,184,166,0.2)] text-teal-500 bg-teal-500/5 scale-[1.02]";
-            break;
-        default:
-            borderColors = "border-primary/20";
-            activeClass = "border-primary ring-4 ring-primary/20 shadow-[0_0_30px_rgba(var(--primary),0.5)] -translate-y-2 bg-primary/5 text-primary scale-[1.03]";
-            hasValueClass = "border-primary/60 shadow-[0_0_20px_rgba(var(--primary),0.2)] text-primary bg-primary/5 scale-[1.02]";
-    }
+        return { className: `${baseClass} ${borderColors}`, activeClassName: activeClass, hasValueClassName: hasValueClass };
+    };
 
-    return { className: `${baseClass} ${borderColors}`, activeClassName: activeClass, hasValueClassName: hasValueClass };
-  };
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        if (submitting) return;
 
-<<<<<<< HEAD
-  const handleLogin = (e) => {
-    e.preventDefault();
+        if (!selectedRole) return;
+        if (!identifier.trim()) {
+            toast.error("Please enter your Username or Email");
+            return;
+        }
+        if (!password.trim()) {
+            toast.error(selectedRole === "admin" ? "Please enter your password" : "Please enter your access code");
+            return;
+        }
 
-    if (selectedRole === 'kitchen') {
-      if (!identifier.trim()) {
-        toast.error("Please enter your Username or Email");
-        return;
-      }
-      const result = login('kitchen', password, identifier); // Pass identifier
-      if (result.success) {
-        toast.success("Welcome, Chef!");
-        navigate('/kitchen');
-      } else {
-        toast.error(result.message || "Login failed");
-      }
-    } else if (selectedRole === 'cleaner') {
-      if (!identifier.trim()) {
-        toast.error("Please enter your Username or Email");
-        return;
-      }
-      const result = login('cleaner', password, identifier);
-      if (result.success) {
-        toast.success("Welcome!");
-        navigate('/cleaner');
-      } else {
-        toast.error(result.message || "Login failed");
-      }
-    } else if (selectedRole === 'server') {
-      if (!identifier.trim()) {
-        toast.error("Please enter your Username or Email");
-        return;
-      }
-      const result = login('server', password, identifier);
-      if (result.success) {
-        toast.success("Welcome, Server!");
-        navigate('/server');
-      } else {
-        toast.error(result.message || "Login failed");
-      }
-    } else if (selectedRole === 'manager') {
-      if (!identifier.trim()) {
-        toast.error("Please enter your Username or Email");
-        return;
-      }
-      const result = login('manager', password, identifier);
-      if (result.success) {
-        toast.success("Welcome, Manager!");
-        navigate('/manager');
-      } else {
-        toast.error(result.message || "Login failed");
-      }
-    } else if (selectedRole === 'admin') {
-      if (!identifier.trim()) {
-        toast.error("Please enter your Username or Email");
-        return;
-      }
-      const result = login('admin', password, identifier);
-      if (result.success) {
-        toast.success("Welcome, Admin!");
-        navigate('/admin');
-      } else {
-        toast.error(result.message || "Login failed");
-      }
-=======
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (submitting) return;
+        setSubmitting(true);
+        try {
+            const result = await login(selectedRole, password, identifier);
+            if (!result.success) {
+                toast.error(result.message || "Login failed");
+                return;
+            }
 
-    if (!selectedRole) return;
-    if (!identifier.trim()) {
-      toast.error("Please enter your Username or Email");
-      return;
-    }
-    if (!password.trim()) {
-      toast.error(selectedRole === "admin" ? "Please enter your password" : "Please enter your access code");
-      return;
-    }
+            const me = result.user;
+            const greetings = {
+                admin: "Welcome, Admin!",
+                manager: "Welcome, Manager!",
+                kitchen: "Welcome, Chef!",
+                server: "Welcome, Server!",
+                cleaner: "Welcome!",
+            };
+            toast.success(greetings[me.role] || "Signed in");
+            navigate(`/${me.role}`, { replace: true });
+        } catch (error) {
+            toast.error("An unexpected error occurred");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
-    setSubmitting(true);
-    try {
-      const result = await login(selectedRole, password, identifier);
-      if (!result.success) {
-        toast.error(result.message || "Login failed");
-        return;
-      }
-
-      // Redirect based on the user's actual role from the backend.
-      const me = result.user;
-      const greetings = {
-        admin: "Welcome, Admin!",
-        manager: "Welcome, Manager!",
-        kitchen: "Welcome, Chef!",
-        server: "Welcome, Server!",
-        cleaner: "Welcome!",
-      };
-      toast.success(greetings[me.role] || "Signed in");
-      const dest = `/${me.role}`;
-      navigate(dest, { replace: true });
-    } finally {
-      setSubmitting(false);
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-            {/* Ambient Background Elements */}
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[100px]" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[100px]" />
             </div>
 
             <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-5 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-32 items-center z-10 relative">
-
-                {/* Left Side: Branding */}
                 <div className="md:col-span-2 lg:col-span-1 text-center md:text-left space-y-6">
                     <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary">
-            
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary">
                         <ShieldCheck className="w-4 h-4" />
                         <span className="text-sm font-medium">Secure Portal Access</span>
                     </motion.div>
@@ -190,37 +115,30 @@ const LoginPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
                         className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight">
-            
-                        <span className="text-gradient-primary">
-                            S.A.F.E.
-                        </span> <br />
-                        <span className="text-foreground">
-                            Staff Portal
-                        </span>
+                        <span className="text-gradient-primary">S.A.F.E.</span> <br />
+                        <span className="text-foreground">Staff Portal</span>
                     </motion.h1>
 
                     <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-muted-foreground text-lg max-w-md">
-            
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-muted-foreground text-lg max-w-md">
                         Manage orders, track kitchen status, and oversee restaurant operations from one secure hub.
                     </motion.p>
                 </div>
 
-                {/* Right Side: Login Form */}
                 <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="md:col-span-3 lg:col-span-1 w-full max-w-md md:max-w-none mx-auto">
-          
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="md:col-span-3 lg:col-span-1 w-full max-w-md md:max-w-none mx-auto">
+                    
                     <Card className="bg-card border-border p-6 md:p-8 lg:p-14 shadow-2xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                        {!selectedRole ?
-            <div className="space-y-6 relative z-10">
+                        {!selectedRole ? (
+                            <div className="space-y-6 relative z-10">
                                 <div className="text-center mb-10">
                                     <h2 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">Select Portal</h2>
                                     <p className="text-muted-foreground mt-2 text-lg font-medium">Choose your authorized access level</p>
@@ -300,9 +218,9 @@ const LoginPage = () => {
                                         Customer View
                                     </Button>
                                 </div>
-                            </div> :
-
-            <form onSubmit={handleLogin} className="space-y-6 relative z-10">
+                            </div>
+                        ) : (
+                            <form onSubmit={handleLogin} className="space-y-6 relative z-10">
                                 <div className="text-center mb-6 sm:mb-8">
                                     <motion.div 
                                         initial={{ scale: 0.8, opacity: 0 }}
@@ -369,7 +287,7 @@ const LoginPage = () => {
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 placeholder="Enter root password"
-                                                className={`h-12 sm:h-14 text-lg rounded-2xl bg-card/60 backdrop-blur-xl border-2 px-6 transition-all duration-300 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:shadow-[0_0_20px_rgba(var(--primary),0.3)]`}
+                                                className="h-12 sm:h-14 text-lg rounded-2xl bg-card/60 backdrop-blur-xl border-2 px-6 transition-all duration-300 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:shadow-[0_0_20px_rgba(var(--primary),0.3)]"
                                                 autoComplete="new-password" 
                                             />
                                         ) : (
@@ -382,25 +300,15 @@ const LoginPage = () => {
                                                     <div className="flex flex-row items-center justify-center gap-1 sm:gap-2 md:gap-3 p-2 sm:p-3 rounded-2xl sm:rounded-3xl bg-card/30 backdrop-blur-sm border border-border/50 shadow-2xl w-full max-w-sm mx-auto">
                                                         <InputOTPGroup className="gap-1 sm:gap-1.5 md:gap-2">
                                                             {[0, 1, 2].map((i) => (
-                                                                <InputOTPSlot
-                                                                    key={i}
-                                                                    index={i}
-                                                                    {...getSlotStyling(selectedRole)}
-                                                                />
+                                                                <InputOTPSlot key={i} index={i} {...getSlotStyling(selectedRole)} />
                                                             ))}
                                                         </InputOTPGroup>
-
                                                         <div className="flex items-center justify-center w-3 sm:w-4 md:w-6">
                                                             <div className="w-full h-1 sm:h-1.5 rounded-full bg-muted-foreground/30"></div>
                                                         </div>
-
                                                         <InputOTPGroup className="gap-1 sm:gap-1.5 md:gap-2">
                                                             {[3, 4, 5].map((i) => (
-                                                                <InputOTPSlot
-                                                                    key={i}
-                                                                    index={i}
-                                                                    {...getSlotStyling(selectedRole)}
-                                                                />
+                                                                <InputOTPSlot key={i} index={i} {...getSlotStyling(selectedRole)} />
                                                             ))}
                                                         </InputOTPGroup>
                                                     </div>
@@ -419,66 +327,47 @@ const LoginPage = () => {
                                                 setIdentifier("");
                                             }}
                                             className={`flex-1 h-12 sm:h-14 rounded-2xl text-base font-bold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-2 ${
-                                                selectedRole === 'kitchen' ? 'border-orange-500/30 text-orange-500 hover:bg-orange-500/10 hover:border-orange-500 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)]' :
-                                                selectedRole === 'cleaner' ? 'border-purple-500/30 text-purple-500 hover:bg-purple-500/10 hover:border-purple-500 hover:shadow-[0_0_20px_rgba(147,51,234,0.2)]' :
-                                                selectedRole === 'server' ? 'border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]' :
-                                                selectedRole === 'manager' ? 'border-teal-500/30 text-teal-500 hover:bg-teal-500/10 hover:border-teal-500 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)]' :
-                                                'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary hover:shadow-[0_0_20px_rgba(var(--primary),0.2)]'
+                                                selectedRole === 'kitchen' ? 'border-orange-500/30 text-orange-500 hover:bg-orange-500/10 hover:border-orange-500' :
+                                                selectedRole === 'cleaner' ? 'border-purple-500/30 text-purple-500 hover:bg-purple-500/10 hover:border-purple-500' :
+                                                selectedRole === 'server' ? 'border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500' :
+                                                selectedRole === 'manager' ? 'border-teal-500/30 text-teal-500 hover:bg-teal-500/10 hover:border-teal-500' :
+                                                'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary'
                                             }`}>
                                             Cancel
                                         </Button>
                                         <Button
                                             type="submit"
-<<<<<<< HEAD
-                                            className={`flex-[2] h-12 sm:h-14 rounded-2xl text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border shadow-xl ${
-=======
                                             disabled={submitting}
-                                            className={`flex-[2] h-12 sm:h-14 rounded-2xl text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border shadow-xl disabled:opacity-60 disabled:cursor-not-allowed ${
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
-                                                selectedRole === 'kitchen' ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-orange-500/40 border-orange-400/50' :
-                                                selectedRole === 'cleaner' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-purple-500/40 border-purple-400/50' :
-                                                selectedRole === 'server' ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:shadow-amber-500/40 border-amber-400/50' :
-                                                selectedRole === 'manager' ? 'bg-gradient-to-r from-teal-500 to-teal-600 hover:shadow-teal-500/40 border-teal-400/50' :
-                                                'bg-gradient-to-r from-primary to-primary/80 hover:shadow-primary/40 border-primary/50'
+                                            className={`flex-[2] h-12 sm:h-14 rounded-2xl text-base font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border shadow-xl disabled:opacity-60 ${
+                                                selectedRole === 'kitchen' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                                selectedRole === 'cleaner' ? 'bg-gradient-to-r from-purple-500 to-purple-600' :
+                                                selectedRole === 'server' ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
+                                                selectedRole === 'manager' ? 'bg-gradient-to-r from-teal-500 to-teal-600' :
+                                                'bg-gradient-to-r from-primary to-primary/80'
                                             }`}>
-<<<<<<< HEAD
-                                            Authenticate Access
-=======
                                             {submitting ? "Authenticating…" : "Authenticate Access"}
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
                                         </Button>
                                     </div>
                                 </div>
 
-                                {(selectedRole === 'kitchen' || selectedRole === 'cleaner') &&
+                                {selectedRole !== 'admin' && (
                                     <div className="text-center pt-8 mt-4 border-t border-border/50">
-                                        <Link to="/signup" className={`text-sm sm:text-base font-semibold hover:underline transition-colors ${selectedRole === 'kitchen' ? 'text-orange-500 hover:text-orange-400' : 'text-purple-500 hover:text-purple-400'}`}>
-                                            New Staff Member? Register Here
+                                        <Link to="/signup" className={`text-sm sm:text-base font-semibold hover:underline transition-colors ${
+                                            selectedRole === 'kitchen' ? 'text-orange-500' : 
+                                            selectedRole === 'cleaner' ? 'text-purple-500' : 
+                                            selectedRole === 'server' ? 'text-amber-500' : 
+                                            'text-teal-500'}`}>
+                                            New {selectedRole}? Register Here
                                         </Link>
                                     </div>
-                                }
-
-                                {selectedRole === 'server' &&
-                                    <div className="text-center pt-8 mt-4 border-t border-border/50">
-                                        <Link to="/signup" className="text-sm sm:text-base font-semibold text-amber-500 hover:text-amber-400 hover:underline transition-colors">
-                                            New Server? Register Here
-                                        </Link>
-                                    </div>
-                                }
-                                {selectedRole === 'manager' &&
-                                    <div className="text-center pt-8 mt-4 border-t border-border/50">
-                                        <Link to="/signup" className="text-sm sm:text-base font-semibold text-teal-500 hover:text-teal-400 hover:underline transition-colors">
-                                            New Manager? Register Here
-                                        </Link>
-                                    </div>
-                                }
+                                )}
                             </form>
-            }
+                        )}
                     </Card>
                 </motion.div>
             </div>
-        </div>);
-
+        </div>
+    );
 };
 
 export default LoginPage;

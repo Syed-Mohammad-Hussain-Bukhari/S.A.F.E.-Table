@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD
-  "name": "vite_react_shadcn_ts",
-  "private": true,
-  "version": "0.0.0",
-=======
   "name": "safetable-fyp",
   "private": true,
   "version": "0.1.0",
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -47,7 +41,6 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
-<<<<<<< HEAD
     "@rollup/rollup-win32-x64-msvc": "^4.60.1",
     "@tanstack/react-query": "^5.83.0",
     "bcryptjs": "^3.0.3",
@@ -63,16 +56,6 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.462.0",
     "mongoose": "^9.2.1",
-=======
-    "@tanstack/react-query": "^5.83.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cmdk": "^1.1.1",
-    "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^11.18.2",
-    "input-otp": "^1.4.2",
-    "lucide-react": "^0.462.0",
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -90,12 +73,10 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-<<<<<<< HEAD
     "@babel/core": "^7.29.0",
     "@babel/preset-typescript": "^7.28.5",
-=======
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     "@eslint/js": "^9.32.0",
+    "@swc/core": "^1.15.33",
     "@tailwindcss/typography": "^0.5.16",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
@@ -103,10 +84,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
-<<<<<<< HEAD
     "lovable-tagger": "^1.1.11",
-=======
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.19"

@@ -23,10 +23,9 @@ class UserLogin(BaseModel):
     password: str
 
 
-<<<<<<< HEAD
-=======
 class SignupRequest(BaseModel):
-    """Public signup — submits an approval request, not a user.
+    """
+    Public signup — submits an approval request, not a user.
     Approval row is materialized into `users` only when an admin approves it.
     """
     full_name: str = Field(..., min_length=1, max_length=100)
@@ -37,7 +36,6 @@ class SignupRequest(BaseModel):
     role: str = Field(..., description="kitchen | server | cleaner | manager")
 
 
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=6)

@@ -1,27 +1,5 @@
-<<<<<<< HEAD
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const INITIAL_STAFF = [
 {
@@ -101,7 +79,7 @@ export const useStaff = create()(
     }
   )
 );
-=======
+
 /**
  * Staff — backend-backed thin wrapper over /api/staff.
  *
@@ -157,4 +135,3 @@ export const useStaff = create((set) => ({
 }));
 
 export default useStaff;
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)

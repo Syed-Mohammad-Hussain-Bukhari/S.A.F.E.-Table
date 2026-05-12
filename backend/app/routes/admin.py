@@ -1,87 +1,8 @@
-<<<<<<< HEAD
-from fastapi import APIRouter, HTTPException, Depends
-from app.database import get_database
-from app.models.admin import AdminCreate, AdminLogin, AdminResponse, TokenResponse, DashboardStats
-from app.config import settings
-from passlib.context import CryptContext
-from jose import jwt
-from datetime import datetime, timedelta
-
-router = APIRouter(prefix="/api/admin", tags=["Admin"])
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def create_access_token(data: dict):
-    """Create JWT access token."""
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-
-
-@router.post("/register", status_code=201)
-async def register_admin(admin: AdminCreate):
-    """Register a new admin/kitchen staff account."""
-    db = get_database()
-
-    # Check if username exists
-    existing = await db.admins.find_one({"username": admin.username})
-    if existing:
-        raise HTTPException(status_code=400, detail="Username already exists")
-
-    admin_dict = {
-        "username": admin.username,
-        "password_hash": pwd_context.hash(admin.password),
-        "full_name": admin.full_name,
-        "role": admin.role,
-        "created_at": datetime.utcnow(),
-    }
-
-    result = await db.admins.insert_one(admin_dict)
-    admin_dict["_id"] = str(result.inserted_id)
-    del admin_dict["password_hash"]
-
-    return admin_dict
-
-
-@router.post("/login")
-async def login(credentials: AdminLogin):
-    """Login and get JWT token."""
-    db = get_database()
-    admin = await db.admins.find_one({"username": credentials.username})
-
-    if not admin or not pwd_context.verify(credentials.password, admin["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    token = create_access_token({
-        "sub": admin["username"],
-        "role": admin["role"],
-    })
-
-    return TokenResponse(
-        access_token=token,
-        role=admin["role"],
-        full_name=admin["full_name"],
-    )
-
-
-@router.get("/dashboard/stats")
-async def get_dashboard_stats():
-    """Get admin dashboard statistics."""
-    db = get_database()
-
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-=======
 """
 Admin dashboard / reporting routes.
-
-Authn moved entirely to /api/auth (unified). Staff creation lives in
-/api/staff (admin-only). The legacy /api/admin/{register,login} endpoints
-have been removed.
+Unified Version - Auth logic moved to /api/auth.
 """
 from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database import get_database
@@ -90,19 +11,19 @@ from app.routes.auth import require_roles
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
-
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
+# Only admins and managers can view the dashboard
+admin_manager_only = require_roles("admin", "manager")
 
 @router.get("/dashboard/stats", response_model=DashboardStats)
-async def get_dashboard_stats(
-    _: dict = Depends(require_roles("admin", "manager")),
-):
+async def get_dashboard_stats(_: dict = Depends(admin_manager_only)):
+    """Fetch real-time business statistics for the dashboard."""
     db = get_database()
     today_start = _utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
+    # Count orders
     total_orders_today = await db.orders.count_documents(
         {"created_at": {"$gte": today_start}}
     )
@@ -113,10 +34,7 @@ async def get_dashboard_stats(
         {"status": "completed", "updated_at": {"$gte": today_start}}
     )
 
-<<<<<<< HEAD
-    # Revenue today
-=======
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
+    # Revenue pipeline
     pipeline = [
         {"$match": {"created_at": {"$gte": today_start}, "payment_status": "paid"}},
         {"$group": {"_id": None, "total": {"$sum": "$total_price"}}},
@@ -126,16 +44,10 @@ async def get_dashboard_stats(
 
     total_menu_items = await db.menu_items.count_documents({})
 
-<<<<<<< HEAD
     # Average rating
     rating_pipeline = [{"$group": {"_id": None, "avg": {"$avg": "$rating"}}}]
     rating_result = await db.feedback.aggregate(rating_pipeline).to_list(1)
-    avg_rating = round(rating_result[0]["avg"], 2) if rating_result else 0.0
-=======
-    rating_pipeline = [{"$group": {"_id": None, "avg": {"$avg": "$rating"}}}]
-    rating_result = await db.feedback.aggregate(rating_pipeline).to_list(1)
     avg_rating = round(rating_result[0]["avg"], 2) if rating_result and rating_result[0].get("avg") else 0.0
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
     active_tables = await db.table_sessions.count_documents({"is_active": True})
 
@@ -149,34 +61,26 @@ async def get_dashboard_stats(
         active_tables=active_tables,
     )
 
-
 @router.get("/orders/history")
-<<<<<<< HEAD
-async def get_order_history(skip: int = 0, limit: int = 50, status: str = None):
-    """Get order history with filtering (admin view)."""
-    db = get_database()
-    query = {}
-    if status:
-        query["status"] = status
-
-=======
 async def get_order_history(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     status_filter: str | None = Query(default=None, alias="status"),
-    _: dict = Depends(require_roles("admin", "manager")),
+    _: dict = Depends(admin_manager_only),
 ):
-    """Order history with safe pagination + optional status filter."""
+    """Fetch historical orders with pagination and filtering."""
+    db = get_database()
     valid_statuses = {"pending", "confirmed", "preparing", "ready", "completed", "cancelled"}
+    
     query: dict = {}
     if status_filter:
         if status_filter not in valid_statuses:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST,
-                                f"Invalid status filter. Valid: {sorted(valid_statuses)}")
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                f"Invalid status. Valid: {sorted(valid_statuses)}"
+            )
         query["status"] = status_filter
 
-    db = get_database()
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
     orders = []
     cursor = db.orders.find(query).sort("created_at", -1).skip(skip).limit(limit)
     async for order in cursor:
@@ -184,8 +88,9 @@ async def get_order_history(
         orders.append(order)
 
     total = await db.orders.count_documents(query)
-<<<<<<< HEAD
-    return {"orders": orders, "total": total}
-=======
-    return {"orders": orders, "total": total, "skip": skip, "limit": limit}
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
+    return {
+        "orders": orders, 
+        "total": total, 
+        "skip": skip, 
+        "limit": limit
+    }

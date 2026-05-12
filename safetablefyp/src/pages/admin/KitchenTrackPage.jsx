@@ -7,12 +7,6 @@ import { useState, useEffect } from "react";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 
-// Extended Order type for display purposes
-
-
-
-
-
 const TARGET_PREP_TIME = 20; // minutes
 
 const statusConfig = {
@@ -33,11 +27,11 @@ const statusConfig = {
   preparing: {
     icon: ChefHat,
     label: "Preparing",
-    color: "text-secondary", // Using secondary from existing standard or orange
+    color: "text-secondary",
     bg: "bg-secondary/20",
     border: "border-secondary/50"
   },
-  cooking: { // keeping cooking for compatibility if needed, though useOrders uses 'preparing' mostly
+  cooking: { 
     icon: Flame,
     label: "Cooking",
     color: "text-primary",
@@ -62,97 +56,77 @@ const statusConfig = {
 
 const KitchenTrackPage = () => {
   const { user } = useAuth();
-<<<<<<< HEAD
-  const isAdmin = user?.role === 'admin';
-  const { getAllOrders, getActiveOrders, tableNumber } = useOrders();
-=======
+  // Expanded role check to include managers
   const isAdmin = user?.role === "admin" || user?.role === "manager";
   const { orders: storeOrders, refreshKitchen, getAllOrders, getActiveOrders } = useOrders();
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   const [orders, setOrders] = useState([]);
   const [now, setNow] = useState(new Date());
 
-<<<<<<< HEAD
-  // Real-time update loop
-  useEffect(() => {
-    const updateOrders = () => {
-      // If admin, get ALL orders. If customer, get only their table's active orders
-=======
-  // Initial fetch + 5s polling.
+  // Initial fetch + 5s polling to keep backend data fresh
   useEffect(() => {
     refreshKitchen();
     const t = setInterval(() => refreshKitchen(), 5000);
     return () => clearInterval(t);
   }, [refreshKitchen]);
 
-  // Real-time update loop
+  // Real-time update loop for progress bars and UI timers
   useEffect(() => {
     const updateOrders = () => {
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
+      // Logic: Admin/Manager sees everything, Customer sees only their table's active orders
       const sourceOrders = isAdmin ? getAllOrders() : getActiveOrders();
       const currentNow = new Date();
       setNow(currentNow);
 
-      const activeOrders = sourceOrders.
-      filter((o) => {
-        // Remove orders older than 20 minutes
-        const createdAt = new Date(o.createdAt);
-        const ageInMinutes = (currentNow.getTime() - createdAt.getTime()) / 60000;
-        return ageInMinutes <= 20;
-      }).
-      map((order) => {
-        const createdAt = new Date(order.createdAt);
-        const elapsedMinutes = (currentNow.getTime() - createdAt.getTime()) / 60000;
-        const estimatedTime = Math.max(0, Math.round(TARGET_PREP_TIME - elapsedMinutes));
+      const activeOrders = sourceOrders
+        .filter((o) => {
+          // Keep display clean by removing orders older than 20 minutes
+          const createdAt = new Date(o.createdAt);
+          const ageInMinutes = (currentNow.getTime() - createdAt.getTime()) / 60000;
+          return ageInMinutes <= 20;
+        })
+        .map((order) => {
+          const createdAt = new Date(order.createdAt);
+          const elapsedMinutes = (currentNow.getTime() - createdAt.getTime()) / 60000;
+          const estimatedTime = Math.max(0, Math.round(TARGET_PREP_TIME - elapsedMinutes));
 
-        // Status-based progress instead of time-based
-        let progress = 25; // Default: pending
-        switch (order.status) {
-          case 'pending':
-            progress = 25;
-            break;
-          case 'confirmed':
-            progress = 25;
-            break;
-          case 'preparing':
-            progress = 50;
-            break;
-          case 'ready':
-            progress = 75;
-            break;
-          case 'completed':
-            progress = 100;
-            break;
-        }
+          // Map status to progress percentage
+          let progress = 25;
+          switch (order.status) {
+            case 'pending':
+            case 'confirmed':
+              progress = 25;
+              break;
+            case 'preparing':
+            case 'cooking':
+              progress = 50;
+              break;
+            case 'ready':
+              progress = 75;
+              break;
+            case 'completed':
+              progress = 100;
+              break;
+          }
 
-        return {
-          ...order,
-          progress,
-          estimatedTime
-        };
-      }).
-      sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          return {
+            ...order,
+            progress,
+            estimatedTime
+          };
+        })
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setOrders(activeOrders);
     };
 
-<<<<<<< HEAD
-    updateOrders(); // Initial call
-    const interval = setInterval(updateOrders, 1000); // Update every second
-
-    return () => clearInterval(interval);
-  }, [getAllOrders, getActiveOrders, isAdmin]);
-=======
     updateOrders();
-    const interval = setInterval(updateOrders, 1000);
+    const interval = setInterval(updateOrders, 1000); // UI updates every second for smooth timers
     return () => clearInterval(interval);
   }, [getAllOrders, getActiveOrders, isAdmin, storeOrders]);
->>>>>>> 3cb3c76 (Update backend changes by Hashaam via Claude Code)
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container px-4 py-4 flex items-center gap-4">
           <Link to="/">
@@ -173,27 +147,22 @@ const KitchenTrackPage = () => {
       </header>
 
       <main className="container px-4 py-8">
-        {/* Status Legend */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap gap-4 mb-8 justify-center">
-          
-          {Object.entries(statusConfig).map(([key, config]) =>
-          <div
-            key={key}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full ${config.bg} border ${config.border}`}>
-            
+          {Object.entries(statusConfig).map(([key, config]) => (
+            <div
+              key={key}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full ${config.bg} border ${config.border}`}>
               <config.icon className={`w-4 h-4 ${config.color}`} />
               <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
             </div>
-          )}
+          ))}
         </motion.div>
 
-        {/* Orders Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {orders.map((order, idx) => {
-            // Fallback for statuses not explicitly in config
             const config = statusConfig[order.status] || statusConfig.preparing;
             const StatusIcon = config.icon;
 
@@ -205,17 +174,14 @@ const KitchenTrackPage = () => {
                 transition={{ delay: idx * 0.1 }}
                 className={`glass-morphism rounded-2xl p-6 border-2 ${config.border} relative overflow-hidden`}>
                 
-                {/* Animated Background */}
-                {order.status === "preparing" &&
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent"
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }} />
-
-                }
+                {order.status === "preparing" && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent"
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }} />
+                )}
 
                 <div className="relative z-10">
-                  {/* Order Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <p className="text-sm text-muted-foreground">{order.orderId}</p>
@@ -226,65 +192,57 @@ const KitchenTrackPage = () => {
                     </div>
                     <motion.div
                       className={`p-3 rounded-xl ${config.bg}`}
-                      animate={order.status === "preparing" ? { scale: [1, 1.1, 1] } : {}}
+                      animate={(order.status === "preparing" || order.status === "cooking") ? { scale: [1, 1.1, 1] } : {}}
                       transition={{ duration: 1, repeat: Infinity }}>
-                      
                       <StatusIcon className={`w-6 h-6 ${config.color}`} />
                     </motion.div>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <motion.div
-                        className={`h-full bg-gradient-to-r ${order.status === "ready" ?
-                        "from-accent to-accent" :
-                        order.status === "preparing" ?
-                        "from-primary to-secondary" :
-                        "from-secondary to-secondary"}`
-                        }
+                        className={`h-full bg-gradient-to-r ${
+                          order.status === "ready" ? "from-accent to-accent" :
+                          (order.status === "preparing" || order.status === "cooking") ? "from-primary to-secondary" :
+                          "from-secondary to-secondary"
+                        }`}
                         initial={{ width: 0 }}
                         animate={{ width: `${order.progress}%` }}
                         transition={{ duration: 0.5 }} />
-                      
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 text-right">
                       {Math.round(order.progress)}% complete
                     </p>
                   </div>
 
-                  {/* Status & Time */}
                   <div className="flex items-center justify-between">
                     <span className={`font-medium ${config.color}`}>{config.label}</span>
-                    {order.status !== "ready" &&
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    {order.status !== "ready" && order.status !== "completed" && (
+                      <div className="flex items-center gap-1 text-muted-foreground">
                         <Clock className="w-4 h-4" />
                         <span className="text-sm">~{order.estimatedTime} min</span>
                       </div>
-                    }
+                    )}
                   </div>
                 </div>
-              </motion.div>);
-
+              </motion.div>
+            );
           })}
         </div>
 
-        {/* Live Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border shadow-lg">
-          
           <motion.div
             className="w-2 h-2 rounded-full bg-accent"
             animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }} />
-          
           <span className="text-sm font-medium">Live Updates</span>
         </motion.div>
       </main>
-    </div>);
-
+    </div>
+  );
 };
 
 export default KitchenTrackPage;
