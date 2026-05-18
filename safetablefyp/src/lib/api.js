@@ -274,6 +274,11 @@ export const adminApi = {
 
 export const tablesApi = {
   createSession: (table_number, language = "en") => post("/api/tables/session", { table_number, language }),
+  devSession: (table_number, language = "en") => request("/api/tables/dev-session", {
+    method: "POST",
+    params: { table_number, language },
+    withAuth: false,
+  }),
   getSession: (table_number) => get(`/api/tables/${table_number}/session`),
   endSession: (table_number) => post(`/api/tables/${table_number}/end-session`),
   active: () => get("/api/tables/active"),

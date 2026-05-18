@@ -33,6 +33,7 @@ async def voice_order(
     session_id: str = payload["session_id"]
 
     final_transcript = ""
+    stt_error = None
 
     # ── Speech-to-text (when audio provided) ─────────────────────────────
     if audio and audio.filename:
@@ -47,15 +48,20 @@ async def voice_order(
             stt_result = await transcribe_audio(audio_bytes, audio.filename)
             if stt_result.get("success"):
                 final_transcript = stt_result.get("text", "")
+            else:
+                stt_error = stt_result.get("error")
 
     # Fallback to text transcript if audio STT failed or wasn't provided
     if not final_transcript and transcript:
         final_transcript = transcript
 
     if not final_transcript:
+        detail = "No audio transcribed successfully"
+        if stt_error:
+            detail = f"{detail}. STT error: {stt_error}"
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            "No audio transcribed successfully"
+            detail
         )
 
     # Sanitize input length

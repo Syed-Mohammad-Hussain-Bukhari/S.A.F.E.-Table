@@ -70,6 +70,29 @@ async def create_session(
     }
 
 
+@router.get("/me/session")
+async def get_my_session(
+    ticket: dict = Depends(require_customer_ticket),
+):
+    """Customer self-service: confirm the ticket maps to a still-live session."""
+    db = get_database()
+    sess = await db.table_sessions.find_one({
+        "session_id": ticket["session_id"],
+        "table_number": ticket["table_number"],
+        "is_active": True,
+    })
+    if not sess:
+        raise HTTPException(status.HTTP_410_GONE, "Session is no longer active")
+    
+    sess["_id"] = str(sess["_id"])
+    return {
+        "table_number": ticket["table_number"],
+        "session_id": ticket["session_id"],
+        "language": sess.get("language", "en"),
+        "is_active": True,
+    }
+
+
 @router.get("/{table_number}/session")
 async def get_active_session(
     table_number: int,
@@ -160,25 +183,3 @@ if not settings.is_production:
 
 
 # ─── Customer endpoint ────────────────────────────────────────────────────
-
-@router.get("/me/session")
-async def get_my_session(
-    ticket: dict = Depends(require_customer_ticket),
-):
-    """Customer self-service: confirm the ticket maps to a still-live session."""
-    db = get_database()
-    sess = await db.table_sessions.find_one({
-        "session_id": ticket["session_id"],
-        "table_number": ticket["table_number"],
-        "is_active": True,
-    })
-    if not sess:
-        raise HTTPException(status.HTTP_410_GONE, "Session is no longer active")
-    
-    sess["_id"] = str(sess["_id"])
-    return {
-        "table_number": ticket["table_number"],
-        "session_id": ticket["session_id"],
-        "language": sess.get("language", "en"),
-        "is_active": True,
-    }

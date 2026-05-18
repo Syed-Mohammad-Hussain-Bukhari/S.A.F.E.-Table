@@ -21,8 +21,19 @@ import {
 
 const TableBootstrap = () => {
   const { tableNumber, start, loading } = useCustomerSession();
+  const { toast } = useToast();
   const [n, setN] = useState(1);
   if (tableNumber) return null;
+  const handleStart = async () => {
+    const result = await start(n);
+    if (!result?.success) {
+      toast({
+        title: "Unable to start session",
+        description: result?.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   return (
     <div className="container mx-auto px-4 py-6">
       <Card className="glass-morphism p-6 border-2 border-primary/30 max-w-xl mx-auto">
@@ -39,7 +50,7 @@ const TableBootstrap = () => {
                 onChange={(e) => setN(Number(e.target.value) || 1)}
                 className="w-24 h-10 px-3 rounded-md bg-input border border-border"
               />
-              <Button onClick={() => start(n)} disabled={loading} size="sm">
+              <Button onClick={handleStart} disabled={loading} size="sm">
                 {loading ? "Starting…" : `Start at Table #${n}`}
               </Button>
             </div>

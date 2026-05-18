@@ -37,6 +37,15 @@ ALLOWED_WS_ORIGINS = set(settings.cors_origins)
 async def lifespan(app: FastAPI):
     """Application startup/shutdown events."""
     await connect_to_mongo()
+    if not settings.is_production:
+        from app.services.dev_seed import ensure_dev_staff
+
+        db = get_database()
+        stats = await ensure_dev_staff(db)
+        print(
+            "Dev staff bootstrap: "
+            f"inserted {stats['inserted']}, updated {stats['updated']}"
+        )
     print("🚀 S.A.F.E Table API is starting up...")
     yield
     await close_mongo_connection()
@@ -60,6 +69,7 @@ app = FastAPI(
     ),
     version="2.2.0",
     lifespan=lifespan,
+    swagger_ui_parameters={"withCredentials": True},
 )
 
 # ─── Rate limiting (slowapi) ──────────────────────────────────────────────

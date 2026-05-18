@@ -9,10 +9,11 @@ Two distinct token types live here:
 from datetime import datetime, timedelta
 from typing import Callable, List
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from passlib.exc import UnknownHashError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -22,12 +23,12 @@ from app.models.user import PasswordChange, SignupRequest, UserLogin
 from app.util import utcnow
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
-security = HTTPBearer(auto_error=True)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer(auto_error=False)
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 limiter = Limiter(key_func=get_remote_address)
 
-VALID_ROLES = {"admin", "manager", "kitchen", "server", "cleaner"}
-SIGNUP_ROLES = {"kitchen", "server", "cleaner", "manager"}
+VALID_ROLES = {"admin", "manager", "kitchen", "server", "cleaner", "staff"}
+SIGNUP_ROLES = {"kitchen", "server", "cleaner", "manager", "staff"}
 
 AUD_STAFF = "staff"
 AUD_CUSTOMER = "customer"
@@ -60,10 +61,16 @@ def decode_token(token: str) -> dict:
     return payload
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> dict:
     """Resolve the authenticated staff user."""
-    payload = decode_token(credentials.credentials)
+    token = credentials.credentials if credentials else None
+    if not token:
+        token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing Authorization header")
+    payload = decode_token(token)
     db = get_database()
     user = await db.users.find_one({"username": payload["sub"]})
     
@@ -109,20 +116,20 @@ def create_customer_ticket(table_number: int, session_id: str) -> str:
 
 # --- Timing-flat helper ---
 
-_DUMMY_BCRYPT_HASH = "$2b$12$" + "C" * 22 + "/" + "D" * 30 + "."
+_DUMMY_HASH = pwd_context.hash("dummy_password")
 
 def _flat_time_miss(submitted_password: str) -> None:
     """Flatten timing to prevent user enumeration."""
     try:
         pwd_context.dummy_verify()
     except Exception:
-        pwd_context.verify(submitted_password, _DUMMY_BCRYPT_HASH)
+        pwd_context.verify(submitted_password, _DUMMY_HASH)
 
 # --- Endpoints ---
 
 @router.post("/login")
 @limiter.limit("5/minute")
-async def login(request: Request, credentials: UserLogin):
+async def login(request: Request, credentials: UserLogin, response: Response):
     """Authenticate a staff member."""
     db = get_database()
     user = await db.users.find_one({"username": credentials.username})
@@ -134,13 +141,27 @@ async def login(request: Request, credentials: UserLogin):
         _flat_time_miss(credentials.password)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
 
-    if not pwd_context.verify(credentials.password, user.get("password_hash", "")):
+    try:
+        verified = pwd_context.verify(credentials.password, user.get("password_hash", ""))
+    except (UnknownHashError, ValueError):
+        verified = False
+
+    if not verified:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
 
     if not user.get("is_active", True):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account deactivated")
 
     token = create_access_token({"sub": user["username"], "role": user["role"]})
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=settings.is_production,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -199,7 +220,15 @@ async def change_password(body: PasswordChange, current_user: dict = Depends(get
     if not user:
         user = await db.admins.find_one({"username": current_user["username"]})
     
-    if not user or not pwd_context.verify(body.current_password, user["password_hash"]):
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Current password incorrect")
+
+    try:
+        verified = pwd_context.verify(body.current_password, user["password_hash"])
+    except (UnknownHashError, ValueError):
+        verified = False
+
+    if not verified:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Current password incorrect")
 
     col = "users" if await db.users.find_one({"username": current_user["username"]}) else "admins"
@@ -211,6 +240,12 @@ async def change_password(body: PasswordChange, current_user: dict = Depends(get
         }}
     )
     return {"message": "Password updated"}
+
+@router.post("/logout")
+async def logout(response: Response):
+    """Clear the auth cookie (client still should discard its token)."""
+    response.delete_cookie("access_token", path="/")
+    return {"message": "Logged out"}
 
 # --- Customer Ticket Verification (Required by Orders) ---
 

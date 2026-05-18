@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6)
     full_name: str = Field(..., min_length=1, max_length=100)
-    role: str = Field(..., description="admin | manager | kitchen | server | cleaner")
+    role: str = Field(..., description="admin | manager | kitchen | server | cleaner | staff")
     email: Optional[str] = None
     phone: Optional[str] = None
 
@@ -33,7 +33,7 @@ class SignupRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     phone: Optional[str] = None
     password: str = Field(..., min_length=6, max_length=128)
-    role: str = Field(..., description="kitchen | server | cleaner | manager")
+    role: str = Field(..., description="kitchen | server | cleaner | manager | staff")
 
 
 class PasswordChange(BaseModel):

@@ -20,29 +20,30 @@ from datetime import datetime, timedelta
 import os
 import uuid
 from dotenv import load_dotenv
+from passlib.context import CryptContext
 
 load_dotenv()
+
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "safetable")
 
-# ─── Password Hash ────────────────────────────────────────────────────────
-# All default passwords = "<role>123" (e.g. admin123, manager123, etc.)
-# Pre-hashed with bcrypt for convenience
-# admin123 / manager123 / kitchen123 / server123 / cleaner123
-HASHED_PASSWORDS = {
-    "admin":    "$2b$12$LJ3m4ys3GZnBqEKBpCdIcOlSOr9sPl/6lP0HHjwQ5p9M1/jmCxCXi",  # admin123
-    "manager":  "$2b$12$LJ3m4ys3GZnBqEKBpCdIcOlSOr9sPl/6lP0HHjwQ5p9M1/jmCxCXi",  # admin123
-    "kitchen":  "$2b$12$LJ3m4ys3GZnBqEKBpCdIcOlSOr9sPl/6lP0HHjwQ5p9M1/jmCxCXi",  # admin123
-    "server":   "$2b$12$LJ3m4ys3GZnBqEKBpCdIcOlSOr9sPl/6lP0HHjwQ5p9M1/jmCxCXi",  # admin123
-    "cleaner":  "$2b$12$LJ3m4ys3GZnBqEKBpCdIcOlSOr9sPl/6lP0HHjwQ5p9M1/jmCxCXi",  # admin123
+# ─── Default Passwords ────────────────────────────────────────────────────
+# Default passwords follow the <role>123 pattern (e.g. admin123, kitchen123)
+DEFAULT_PASSWORDS = {
+    "admin": "admin123",
+    "manager": "manager123",
+    "kitchen": "kitchen123",
+    "server": "server123",
+    "cleaner": "cleaner123",
 }
 
 # ─── Staff Accounts ───────────────────────────────────────────────────────
 STAFF_ACCOUNTS = [
     {
         "username": "admin",
-        "password_hash": HASHED_PASSWORDS["admin"],
+        "password": DEFAULT_PASSWORDS["admin"],
         "full_name": "System Admin",
         "role": "admin",
         "email": "admin@safetable.com",
@@ -51,7 +52,7 @@ STAFF_ACCOUNTS = [
     },
     {
         "username": "manager",
-        "password_hash": HASHED_PASSWORDS["manager"],
+        "password": DEFAULT_PASSWORDS["manager"],
         "full_name": "Sarah Manager",
         "role": "manager",
         "email": "manager@safetable.com",
@@ -60,7 +61,7 @@ STAFF_ACCOUNTS = [
     },
     {
         "username": "kitchen",
-        "password_hash": HASHED_PASSWORDS["kitchen"],
+        "password": DEFAULT_PASSWORDS["kitchen"],
         "full_name": "Chef Ahmad",
         "role": "kitchen",
         "email": "kitchen@safetable.com",
@@ -68,8 +69,17 @@ STAFF_ACCOUNTS = [
         "is_active": True,
     },
     {
+        "username": "server",
+        "password": DEFAULT_PASSWORDS["server"],
+        "full_name": "Sam Server",
+        "role": "server",
+        "email": "server@safetable.com",
+        "phone": "+1-555-0004",
+        "is_active": True,
+    },
+    {
         "username": "server1",
-        "password_hash": HASHED_PASSWORDS["server"],
+        "password": DEFAULT_PASSWORDS["server"],
         "full_name": "John Server",
         "role": "server",
         "email": "server1@safetable.com",
@@ -77,8 +87,17 @@ STAFF_ACCOUNTS = [
         "is_active": True,
     },
     {
+        "username": "cleaner",
+        "password": DEFAULT_PASSWORDS["cleaner"],
+        "full_name": "Cleo Cleaner",
+        "role": "cleaner",
+        "email": "cleaner@safetable.com",
+        "phone": "+1-555-0005",
+        "is_active": True,
+    },
+    {
         "username": "cleaner1",
-        "password_hash": HASHED_PASSWORDS["cleaner"],
+        "password": DEFAULT_PASSWORDS["cleaner"],
         "full_name": "Maria Cleaner",
         "role": "cleaner",
         "email": "cleaner1@safetable.com",
@@ -252,27 +271,47 @@ async def seed_database():
     for item in MENU_ITEMS:
         item["created_at"] = now
         item["updated_at"] = now
+        item["stock_quantity"] = 50
 
     result = await db.menu_items.insert_many(MENU_ITEMS)
     print(f"   ✅ Seeded {len(result.inserted_ids)} menu items")
 
     # ── 2. Staff Accounts (users collection) ──────────────────────────────
-    seeded_staff = 0
+    inserted_staff = 0
+    updated_staff = 0
     for staff in STAFF_ACCOUNTS:
-        existing = await db.users.find_one({"username": staff["username"]})
-        if not existing:
-            staff_doc = {**staff, "created_at": now, "updated_at": now}
-            await db.users.insert_one(staff_doc)
-            seeded_staff += 1
+        staff_doc = {
+            **staff,
+            "password_hash": pwd_context.hash(staff["password"]),
+            "updated_at": now,
+        }
+        staff_doc.pop("password", None)
+        result = await db.users.update_one(
+            {"username": staff["username"]},
+            {"$set": staff_doc, "$setOnInsert": {"created_at": now}},
+            upsert=True,
+        )
+        if result.upserted_id:
+            inserted_staff += 1
+        else:
+            updated_staff += 1
 
         # Also keep admin in legacy admins collection for backward compat
         if staff["role"] == "admin":
-            existing_admin = await db.admins.find_one({"username": staff["username"]})
-            if not existing_admin:
-                await db.admins.insert_one({**staff, "created_at": now})
+            await db.admins.update_one(
+                {"username": staff["username"]},
+                {"$set": staff_doc, "$setOnInsert": {"created_at": now}},
+                upsert=True,
+            )
 
-    print(f"   ✅ Seeded {seeded_staff}/{len(STAFF_ACCOUNTS)} staff accounts")
-    print("      Credentials: admin/admin123 | manager/admin123 | kitchen/admin123 | server1/admin123 | cleaner1/admin123")
+    print(
+        f"   ✅ Seeded {inserted_staff}/{len(STAFF_ACCOUNTS)} staff accounts "
+        f"(updated {updated_staff})"
+    )
+    print(
+        "      Credentials: admin/admin123 | manager/manager123 | kitchen/kitchen123 | "
+        "server/server123 | server1/server123 | cleaner/cleaner123 | cleaner1/cleaner123"
+    )
 
     # ── 3. Dummy Orders ───────────────────────────────────────────────────
     existing_orders = await db.orders.count_documents({})

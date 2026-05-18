@@ -138,6 +138,15 @@ async def get_payment_by_order(
 ):
     db = get_database()
     payment = await db.payments.find_one({"order_id": order_id})
+    if not payment and ObjectId.is_valid(order_id):
+        order = await db.orders.find_one({"_id": ObjectId(order_id)})
+        if order:
+            resolved_id = order.get("order_id") or str(order["_id"])
+            payment = await db.payments.find_one({"order_id": resolved_id})
+
     if not payment:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "No payment found for this order")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "No payment found for this order. Create one via /api/payments-manual/generate-qr first.",
+        )
     return _stringify_id(payment)

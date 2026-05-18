@@ -90,9 +90,9 @@ const VoiceOrderPage = () => {
 
   const stopRecording = () => {
     setIsListening(false);
-    if (silenceTimerRef.current) { 
-      clearTimeout(silenceTimerRef.current); 
-      silenceTimerRef.current = null; 
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
     }
     if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -105,19 +105,19 @@ const VoiceOrderPage = () => {
     if (audioChunksRef.current.length === 0) return;
     setIsProcessing(true);
     const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-    
+
     try {
-      const data = await voiceApi.order({ 
-        audio: audioBlob, 
+      const data = await voiceApi.order({
+        audio: audioBlob,
         language: "en",
-        table_number: tableNumber 
+        table_number: tableNumber,
       });
 
       if (data?.success) {
         setTranscript(data.transcript || "");
         setAiResponse(data.response_text || "");
         if (data.order_placed) setOrderStatus(`Order Confirmed: ${data.order_id}`);
-        
+
         if (data.audio_base64 && audioPlayerRef.current) {
           audioPlayerRef.current.src = `data:${data.audio_content_type || "audio/mp3"};base64,${data.audio_base64}`;
           audioPlayerRef.current.play().catch(() => {});
@@ -138,11 +138,22 @@ const VoiceOrderPage = () => {
   };
 
   const toggleListening = () => {
-    if (isListening) { 
-      stopRecording(); 
-      processAudioPayload(); 
+    if (isListening) {
+      stopRecording();
+      processAudioPayload();
     } else {
       startRecording();
+    }
+  };
+
+  const handleStartSession = async () => {
+    const result = await start(tableInput);
+    if (!result?.success) {
+      toast({
+        title: "Unable to start session",
+        description: result?.message || "Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -162,7 +173,7 @@ const VoiceOrderPage = () => {
               type="number" min={1} max={50} value={tableInput}
               onChange={(e) => setTableInput(Number(e.target.value) || 1)}
               className="w-24 h-10 px-3 rounded-md bg-input border border-border" />
-            <Button onClick={() => start(tableInput)} disabled={loading} className="flex-1">
+            <Button onClick={handleStartSession} disabled={loading} className="flex-1">
               {loading ? "Starting…" : `Join Table #${tableInput}`}
             </Button>
           </div>
